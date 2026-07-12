@@ -1,0 +1,16 @@
+,mean,std,min,25%,50%,75%,max
+Pre_Semester_GPA,3.147,0.476,1.804,2.834,3.21,3.521,3.998
+Weekly_GenAI_Hours,8.065,7.21,0.0,2.39,5.8,11.72,25.715
+Tool_Diversity,2.8,1.188,1.0,2.0,3.0,4.0,5.0
+Traditional_Study_Hours,11.204,5.142,1.0,7.56,11.18,14.71,25.435
+Perceived_AI_Dependency,3.503,1.814,1.0,2.0,3.0,5.0,9.5
+Anxiety_Level_During_Exams,4.271,2.144,1.0,3.0,4.0,6.0,10.0
+Post_Semester_GPA,3.35,0.492,1.936,3.024,3.421,3.749,4.0
+Skill_Retention_Score,75.821,13.209,39.265,66.82,76.0,85.19,100.0
+GPA_Change,0.203,0.186,-0.924,0.088,0.203,0.324,1.008
+Total_Learning_Hours,19.27,8.183,1.01,13.41,18.26,24.28,51.15
+AI_to_Study_Time_Ratio,0.98,1.531,0.0,0.192,0.494,1.13,12.858
+Dependency_Adjusted_AI_Usage,36.748,49.1,0.0,5.078,16.59,46.485,244.293
+Anxiety_Dependency_Interaction,16.158,13.97,1.0,6.0,12.0,24.0,95.0
+Early_Warning_Risk_Index,-0.0,2.835,-7.84,-2.017,-0.335,1.679,12.848
+Learning_Balance_Score,0.0,2.212,-10.4,-1.42,0.127,1.561,7.035

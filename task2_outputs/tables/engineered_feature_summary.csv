@@ -1,0 +1,11 @@
+,mean,std,min,25%,50%,75%,max
+GPA_Change,0.203,0.186,-0.924,0.088,0.203,0.324,1.008
+GPA_Drop_Flag,0.122,0.327,0.0,0.0,0.0,0.0,1.0
+Total_Learning_Hours,19.27,8.183,1.01,13.41,18.26,24.28,51.15
+AI_to_Study_Time_Ratio,0.98,1.531,0.0,0.192,0.494,1.13,12.858
+Dependency_Adjusted_AI_Usage,36.748,49.1,0.0,5.078,16.59,46.485,244.293
+Anxiety_Dependency_Interaction,16.158,13.97,1.0,6.0,12.0,24.0,95.0
+Skill_Retention_Per_AI_Hour,17.086,16.136,1.47,5.94,11.198,22.273,100.0
+High_AI_Use_Flag,0.25,0.433,0.0,0.0,0.0,0.0,1.0
+Low_Skill_Retention_Flag,0.25,0.433,0.0,0.0,0.0,0.0,1.0
+Early_Warning_Risk_Index,-0.0,2.835,-7.84,-2.017,-0.335,1.679,12.848

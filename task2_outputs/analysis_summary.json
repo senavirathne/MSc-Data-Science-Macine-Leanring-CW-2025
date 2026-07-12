@@ -1,0 +1,815 @@
+{
+  "data_path": "/Users/madushika/Downloads/berry/ai_student_cleaned_feature_engineered.csv",
+  "target": "Burnout_Risk_Level",
+  "raw_shape": [
+    50000,
+    25
+  ],
+  "clean_shape": [
+    50000,
+    25
+  ],
+  "feature_engineered_shape": [
+    50000,
+    30
+  ],
+  "raw_quality": {
+    "rows": 50000,
+    "columns": 25,
+    "missing_total": 0,
+    "missing_by_column": {},
+    "duplicate_rows": 0,
+    "columns_present": [
+      "Major_Category",
+      "Year_of_Study",
+      "Pre_Semester_GPA",
+      "Weekly_GenAI_Hours",
+      "Primary_Use_Case",
+      "Prompt_Engineering_Skill",
+      "Tool_Diversity",
+      "Paid_Subscription",
+      "Traditional_Study_Hours",
+      "Perceived_AI_Dependency",
+      "Institutional_Policy",
+      "Anxiety_Level_During_Exams",
+      "Post_Semester_GPA",
+      "Skill_Retention_Score",
+      "Burnout_Risk_Level",
+      "Missing_Value_Count",
+      "Complete_Record_Flag",
+      "GPA_Change",
+      "Total_Learning_Hours",
+      "AI_to_Study_Time_Ratio",
+      "Academic_Productivity_Index",
+      "Dependency_Adjusted_AI_Usage",
+      "Anxiety_Dependency_Interaction",
+      "Skill_Retention_Per_AI_Hour",
+      "Balanced_Learning_Index"
+    ]
+  },
+  "cleaning": {
+    "initial_rows": 50000,
+    "dropped_identifier_columns": [],
+    "dropped_missing_target_rows": 0,
+    "dropped_duplicate_rows": 0,
+    "final_rows": 50000
+  },
+  "target_distribution": [
+    {
+      "Class": "Low",
+      "Count": 16369,
+      "Percentage": 32.74
+    },
+    {
+      "Class": "Medium",
+      "Count": 21144,
+      "Percentage": 42.29
+    },
+    {
+      "Class": "High",
+      "Count": 12487,
+      "Percentage": 24.97
+    }
+  ],
+  "numerical_summary": [
+    {
+      "Feature": "Pre_Semester_GPA",
+      "mean": 3.147,
+      "std": 0.476,
+      "min": 1.804,
+      "25%": 2.834,
+      "50%": 3.21,
+      "75%": 3.521,
+      "max": 3.998
+    },
+    {
+      "Feature": "Weekly_GenAI_Hours",
+      "mean": 8.065,
+      "std": 7.21,
+      "min": 0.0,
+      "25%": 2.39,
+      "50%": 5.8,
+      "75%": 11.72,
+      "max": 25.715
+    },
+    {
+      "Feature": "Tool_Diversity",
+      "mean": 2.8,
+      "std": 1.188,
+      "min": 1.0,
+      "25%": 2.0,
+      "50%": 3.0,
+      "75%": 4.0,
+      "max": 5.0
+    },
+    {
+      "Feature": "Traditional_Study_Hours",
+      "mean": 11.204,
+      "std": 5.142,
+      "min": 1.0,
+      "25%": 7.56,
+      "50%": 11.18,
+      "75%": 14.71,
+      "max": 25.435
+    },
+    {
+      "Feature": "Perceived_AI_Dependency",
+      "mean": 3.503,
+      "std": 1.814,
+      "min": 1.0,
+      "25%": 2.0,
+      "50%": 3.0,
+      "75%": 5.0,
+      "max": 9.5
+    },
+    {
+      "Feature": "Anxiety_Level_During_Exams",
+      "mean": 4.271,
+      "std": 2.144,
+      "min": 1.0,
+      "25%": 3.0,
+      "50%": 4.0,
+      "75%": 6.0,
+      "max": 10.0
+    },
+    {
+      "Feature": "Post_Semester_GPA",
+      "mean": 3.35,
+      "std": 0.492,
+      "min": 1.936,
+      "25%": 3.024,
+      "50%": 3.421,
+      "75%": 3.749,
+      "max": 4.0
+    },
+    {
+      "Feature": "Skill_Retention_Score",
+      "mean": 75.821,
+      "std": 13.209,
+      "min": 39.265,
+      "25%": 66.82,
+      "50%": 76.0,
+      "75%": 85.19,
+      "max": 100.0
+    },
+    {
+      "Feature": "GPA_Change",
+      "mean": 0.203,
+      "std": 0.186,
+      "min": -0.924,
+      "25%": 0.088,
+      "50%": 0.203,
+      "75%": 0.324,
+      "max": 1.008
+    },
+    {
+      "Feature": "Total_Learning_Hours",
+      "mean": 19.27,
+      "std": 8.183,
+      "min": 1.01,
+      "25%": 13.41,
+      "50%": 18.26,
+      "75%": 24.28,
+      "max": 51.15
+    },
+    {
+      "Feature": "AI_to_Study_Time_Ratio",
+      "mean": 0.98,
+      "std": 1.531,
+      "min": 0.0,
+      "25%": 0.192,
+      "50%": 0.494,
+      "75%": 1.13,
+      "max": 12.858
+    },
+    {
+      "Feature": "Dependency_Adjusted_AI_Usage",
+      "mean": 36.748,
+      "std": 49.1,
+      "min": 0.0,
+      "25%": 5.078,
+      "50%": 16.59,
+      "75%": 46.485,
+      "max": 244.293
+    },
+    {
+      "Feature": "Anxiety_Dependency_Interaction",
+      "mean": 16.158,
+      "std": 13.97,
+      "min": 1.0,
+      "25%": 6.0,
+      "50%": 12.0,
+      "75%": 24.0,
+      "max": 95.0
+    },
+    {
+      "Feature": "Early_Warning_Risk_Index",
+      "mean": -0.0,
+      "std": 2.835,
+      "min": -7.84,
+      "25%": -2.017,
+      "50%": -0.335,
+      "75%": 1.679,
+      "max": 12.848
+    },
+    {
+      "Feature": "Learning_Balance_Score",
+      "mean": 0.0,
+      "std": 2.212,
+      "min": -10.4,
+      "25%": -1.42,
+      "50%": 0.127,
+      "75%": 1.561,
+      "max": 7.035
+    }
+  ],
+  "grouped_numeric_summary_path": "task2_outputs/tables/grouped_numeric_summary_by_target.csv",
+  "correlation_top_pairs": [
+    {
+      "Feature_1": "Early_Warning_Risk_Index",
+      "Feature_2": "Learning_Balance_Score",
+      "Correlation": -0.9512
+    },
+    {
+      "Feature_1": "Pre_Semester_GPA",
+      "Feature_2": "Post_Semester_GPA",
+      "Correlation": 0.9265
+    },
+    {
+      "Feature_1": "Weekly_GenAI_Hours",
+      "Feature_2": "Dependency_Adjusted_AI_Usage",
+      "Correlation": 0.9164
+    },
+    {
+      "Feature_1": "Perceived_AI_Dependency",
+      "Feature_2": "Dependency_Adjusted_AI_Usage",
+      "Correlation": 0.8038
+    },
+    {
+      "Feature_1": "Weekly_GenAI_Hours",
+      "Feature_2": "Total_Learning_Hours",
+      "Correlation": 0.784
+    },
+    {
+      "Feature_1": "Perceived_AI_Dependency",
+      "Feature_2": "Anxiety_Dependency_Interaction",
+      "Correlation": 0.7828
+    },
+    {
+      "Feature_1": "Anxiety_Dependency_Interaction",
+      "Feature_2": "Early_Warning_Risk_Index",
+      "Correlation": 0.7788
+    },
+    {
+      "Feature_1": "Dependency_Adjusted_AI_Usage",
+      "Feature_2": "Early_Warning_Risk_Index",
+      "Correlation": 0.7639
+    },
+    {
+      "Feature_1": "Anxiety_Level_During_Exams",
+      "Feature_2": "Anxiety_Dependency_Interaction",
+      "Correlation": 0.7613
+    },
+    {
+      "Feature_1": "Anxiety_Dependency_Interaction",
+      "Feature_2": "Learning_Balance_Score",
+      "Correlation": -0.7392
+    },
+    {
+      "Feature_1": "Weekly_GenAI_Hours",
+      "Feature_2": "Early_Warning_Risk_Index",
+      "Correlation": 0.731
+    },
+    {
+      "Feature_1": "Perceived_AI_Dependency",
+      "Feature_2": "Early_Warning_Risk_Index",
+      "Correlation": 0.7261
+    }
+  ],
+  "outlier_summary_top": [
+    {
+      "Feature": "Post_Semester_GPA",
+      "Q1": 3.024,
+      "Q3": 3.749,
+      "IQR": 0.725,
+      "Lower_Bound": 1.936,
+      "Upper_Bound": 4.837,
+      "Outlier_Count": 346,
+      "Outlier_Percentage": 0.692
+    },
+    {
+      "Feature": "Anxiety_Level_During_Exams",
+      "Q1": 3.0,
+      "Q3": 6.0,
+      "IQR": 3.0,
+      "Lower_Bound": -1.5,
+      "Upper_Bound": 10.5,
+      "Outlier_Count": 0,
+      "Outlier_Percentage": 0.0
+    },
+    {
+      "Feature": "Perceived_AI_Dependency",
+      "Q1": 2.0,
+      "Q3": 5.0,
+      "IQR": 3.0,
+      "Lower_Bound": -2.5,
+      "Upper_Bound": 9.5,
+      "Outlier_Count": 0,
+      "Outlier_Percentage": 0.0
+    },
+    {
+      "Feature": "Pre_Semester_GPA",
+      "Q1": 2.834,
+      "Q3": 3.521,
+      "IQR": 0.687,
+      "Lower_Bound": 1.804,
+      "Upper_Bound": 4.552,
+      "Outlier_Count": 0,
+      "Outlier_Percentage": 0.0
+    },
+    {
+      "Feature": "Skill_Retention_Score",
+      "Q1": 66.82,
+      "Q3": 85.19,
+      "IQR": 18.37,
+      "Lower_Bound": 39.265,
+      "Upper_Bound": 112.745,
+      "Outlier_Count": 0,
+      "Outlier_Percentage": 0.0
+    },
+    {
+      "Feature": "Tool_Diversity",
+      "Q1": 2.0,
+      "Q3": 4.0,
+      "IQR": 2.0,
+      "Lower_Bound": -1.0,
+      "Upper_Bound": 7.0,
+      "Outlier_Count": 0,
+      "Outlier_Percentage": 0.0
+    },
+    {
+      "Feature": "Traditional_Study_Hours",
+      "Q1": 7.56,
+      "Q3": 14.71,
+      "IQR": 7.15,
+      "Lower_Bound": -3.165,
+      "Upper_Bound": 25.435,
+      "Outlier_Count": 0,
+      "Outlier_Percentage": 0.0
+    },
+    {
+      "Feature": "Weekly_GenAI_Hours",
+      "Q1": 2.39,
+      "Q3": 11.72,
+      "IQR": 9.33,
+      "Lower_Bound": -11.605,
+      "Upper_Bound": 25.715,
+      "Outlier_Count": 0,
+      "Outlier_Percentage": 0.0
+    }
+  ],
+  "engineered_features": [
+    {
+      "feature": "GPA_Change",
+      "formula": "Post_Semester_GPA - Pre_Semester_GPA",
+      "meaning": "Measures semester-level academic movement."
+    },
+    {
+      "feature": "GPA_Drop_Flag",
+      "formula": "1 if GPA_Change < 0 else 0",
+      "meaning": "Flags students whose GPA fell during the semester."
+    },
+    {
+      "feature": "Total_Learning_Hours",
+      "formula": "Weekly_GenAI_Hours + Traditional_Study_Hours",
+      "meaning": "Captures total weekly learning workload."
+    },
+    {
+      "feature": "AI_to_Study_Time_Ratio",
+      "formula": "Weekly_GenAI_Hours / (Traditional_Study_Hours + 1)",
+      "meaning": "Compares AI-supported work against traditional study time."
+    },
+    {
+      "feature": "Dependency_Adjusted_AI_Usage",
+      "formula": "Weekly_GenAI_Hours * Perceived_AI_Dependency",
+      "meaning": "Combines usage intensity with self-reported dependency."
+    },
+    {
+      "feature": "Anxiety_Dependency_Interaction",
+      "formula": "Anxiety_Level_During_Exams * Perceived_AI_Dependency",
+      "meaning": "Captures the combined wellbeing risk signal from anxiety and AI dependency."
+    },
+    {
+      "feature": "Skill_Retention_Per_AI_Hour",
+      "formula": "Skill_Retention_Score / (Weekly_GenAI_Hours + 1)",
+      "meaning": "Estimates retained skill relative to AI usage intensity."
+    },
+    {
+      "feature": "High_AI_Use_Flag",
+      "formula": "1 if Weekly_GenAI_Hours is above the 75th percentile else 0",
+      "meaning": "Marks unusually high GenAI usage."
+    },
+    {
+      "feature": "Low_Skill_Retention_Flag",
+      "formula": "1 if Skill_Retention_Score is below the 25th percentile else 0",
+      "meaning": "Marks comparatively weak skill retention."
+    },
+    {
+      "feature": "Early_Warning_Risk_Index",
+      "formula": "z(AI hours) + z(dependency) + z(anxiety) - z(traditional hours) - z(pre-semester GPA)",
+      "meaning": "Combines early-available risk and protective signals."
+    }
+  ],
+  "feature_sets": {
+    "full": {
+      "raw_feature_count": 27,
+      "processed_feature_count": 44,
+      "train_shape": [
+        40000,
+        44
+      ],
+      "test_shape": [
+        10000,
+        44
+      ],
+      "class_labels": [
+        "High",
+        "Low",
+        "Medium"
+      ],
+      "npz_path": "task2_outputs/splits/full_train_test_arrays.npz",
+      "feature_names_path": "task2_outputs/splits/full_processed_feature_names.csv",
+      "raw_features": [
+        "Major_Category",
+        "Year_of_Study",
+        "Pre_Semester_GPA",
+        "Weekly_GenAI_Hours",
+        "Primary_Use_Case",
+        "Prompt_Engineering_Skill",
+        "Tool_Diversity",
+        "Paid_Subscription",
+        "Traditional_Study_Hours",
+        "Perceived_AI_Dependency",
+        "Institutional_Policy",
+        "Anxiety_Level_During_Exams",
+        "Post_Semester_GPA",
+        "Skill_Retention_Score",
+        "GPA_Change",
+        "Total_Learning_Hours",
+        "AI_to_Study_Time_Ratio",
+        "Academic_Productivity_Index",
+        "Dependency_Adjusted_AI_Usage",
+        "Anxiety_Dependency_Interaction",
+        "Skill_Retention_Per_AI_Hour",
+        "Balanced_Learning_Index",
+        "GPA_Drop_Flag",
+        "High_AI_Use_Flag",
+        "Low_Skill_Retention_Flag",
+        "Early_Warning_Risk_Index",
+        "Learning_Balance_Score"
+      ]
+    },
+    "early_warning": {
+      "raw_feature_count": 18,
+      "processed_feature_count": 35,
+      "train_shape": [
+        40000,
+        35
+      ],
+      "test_shape": [
+        10000,
+        35
+      ],
+      "class_labels": [
+        "High",
+        "Low",
+        "Medium"
+      ],
+      "npz_path": "task2_outputs/splits/early_warning_train_test_arrays.npz",
+      "feature_names_path": "task2_outputs/splits/early_warning_processed_feature_names.csv",
+      "raw_features": [
+        "Major_Category",
+        "Year_of_Study",
+        "Pre_Semester_GPA",
+        "Weekly_GenAI_Hours",
+        "Primary_Use_Case",
+        "Prompt_Engineering_Skill",
+        "Tool_Diversity",
+        "Paid_Subscription",
+        "Traditional_Study_Hours",
+        "Perceived_AI_Dependency",
+        "Institutional_Policy",
+        "Anxiety_Level_During_Exams",
+        "Total_Learning_Hours",
+        "AI_to_Study_Time_Ratio",
+        "Dependency_Adjusted_AI_Usage",
+        "Anxiety_Dependency_Interaction",
+        "High_AI_Use_Flag",
+        "Early_Warning_Risk_Index"
+      ]
+    }
+  },
+  "feature_selection": {
+    "full": {
+      "mutual_information_path": "task2_outputs/tables/full_mutual_information.csv",
+      "random_forest_importance_path": "task2_outputs/tables/full_random_forest_importance.csv",
+      "mutual_information_top": [
+        {
+          "Feature": "Dependency_Adjusted_AI_Usage",
+          "Mutual_Information": 0.130496
+        },
+        {
+          "Feature": "Weekly_GenAI_Hours",
+          "Mutual_Information": 0.12834
+        },
+        {
+          "Feature": "Skill_Retention_Per_AI_Hour",
+          "Mutual_Information": 0.122362
+        },
+        {
+          "Feature": "Early_Warning_Risk_Index",
+          "Mutual_Information": 0.113332
+        },
+        {
+          "Feature": "AI_to_Study_Time_Ratio",
+          "Mutual_Information": 0.107125
+        },
+        {
+          "Feature": "High_AI_Use_Flag",
+          "Mutual_Information": 0.097146
+        },
+        {
+          "Feature": "Perceived_AI_Dependency",
+          "Mutual_Information": 0.079713
+        },
+        {
+          "Feature": "Total_Learning_Hours",
+          "Mutual_Information": 0.069603
+        },
+        {
+          "Feature": "Learning_Balance_Score",
+          "Mutual_Information": 0.066921
+        },
+        {
+          "Feature": "Anxiety_Dependency_Interaction",
+          "Mutual_Information": 0.063557
+        },
+        {
+          "Feature": "Anxiety_Level_During_Exams",
+          "Mutual_Information": 0.018462
+        },
+        {
+          "Feature": "Traditional_Study_Hours",
+          "Mutual_Information": 0.012485
+        },
+        {
+          "Feature": "Academic_Productivity_Index",
+          "Mutual_Information": 0.01017
+        },
+        {
+          "Feature": "Paid_Subscription_False",
+          "Mutual_Information": 0.009719
+        },
+        {
+          "Feature": "Paid_Subscription_True",
+          "Mutual_Information": 0.00924
+        }
+      ],
+      "random_forest_top": [
+        {
+          "Feature": "Weekly_GenAI_Hours",
+          "Importance": 0.080177
+        },
+        {
+          "Feature": "Dependency_Adjusted_AI_Usage",
+          "Importance": 0.073723
+        },
+        {
+          "Feature": "Skill_Retention_Per_AI_Hour",
+          "Importance": 0.068746
+        },
+        {
+          "Feature": "AI_to_Study_Time_Ratio",
+          "Importance": 0.063827
+        },
+        {
+          "Feature": "Early_Warning_Risk_Index",
+          "Importance": 0.061467
+        },
+        {
+          "Feature": "Total_Learning_Hours",
+          "Importance": 0.051101
+        },
+        {
+          "Feature": "Learning_Balance_Score",
+          "Importance": 0.049902
+        },
+        {
+          "Feature": "Pre_Semester_GPA",
+          "Importance": 0.045471
+        },
+        {
+          "Feature": "Academic_Productivity_Index",
+          "Importance": 0.043786
+        },
+        {
+          "Feature": "GPA_Change",
+          "Importance": 0.04303
+        },
+        {
+          "Feature": "Balanced_Learning_Index",
+          "Importance": 0.042977
+        },
+        {
+          "Feature": "Post_Semester_GPA",
+          "Importance": 0.042221
+        },
+        {
+          "Feature": "Traditional_Study_Hours",
+          "Importance": 0.042176
+        },
+        {
+          "Feature": "Skill_Retention_Score",
+          "Importance": 0.041546
+        },
+        {
+          "Feature": "Anxiety_Dependency_Interaction",
+          "Importance": 0.029249
+        }
+      ]
+    },
+    "early_warning": {
+      "mutual_information_path": "task2_outputs/tables/early_warning_mutual_information.csv",
+      "random_forest_importance_path": "task2_outputs/tables/early_warning_random_forest_importance.csv",
+      "mutual_information_top": [
+        {
+          "Feature": "Dependency_Adjusted_AI_Usage",
+          "Mutual_Information": 0.133719
+        },
+        {
+          "Feature": "Weekly_GenAI_Hours",
+          "Mutual_Information": 0.128734
+        },
+        {
+          "Feature": "Early_Warning_Risk_Index",
+          "Mutual_Information": 0.113316
+        },
+        {
+          "Feature": "AI_to_Study_Time_Ratio",
+          "Mutual_Information": 0.107525
+        },
+        {
+          "Feature": "High_AI_Use_Flag",
+          "Mutual_Information": 0.094826
+        },
+        {
+          "Feature": "Perceived_AI_Dependency",
+          "Mutual_Information": 0.077102
+        },
+        {
+          "Feature": "Total_Learning_Hours",
+          "Mutual_Information": 0.067185
+        },
+        {
+          "Feature": "Anxiety_Dependency_Interaction",
+          "Mutual_Information": 0.062173
+        },
+        {
+          "Feature": "Anxiety_Level_During_Exams",
+          "Mutual_Information": 0.017773
+        },
+        {
+          "Feature": "Traditional_Study_Hours",
+          "Mutual_Information": 0.011668
+        },
+        {
+          "Feature": "Year_of_Study_Graduate",
+          "Mutual_Information": 0.010598
+        },
+        {
+          "Feature": "Year_of_Study_Freshman",
+          "Mutual_Information": 0.008945
+        },
+        {
+          "Feature": "Paid_Subscription_False",
+          "Mutual_Information": 0.006231
+        },
+        {
+          "Feature": "Major_Category_Business",
+          "Mutual_Information": 0.005625
+        },
+        {
+          "Feature": "Institutional_Policy_Actively_Encouraged",
+          "Mutual_Information": 0.005196
+        }
+      ],
+      "random_forest_top": [
+        {
+          "Feature": "Weekly_GenAI_Hours",
+          "Importance": 0.114644
+        },
+        {
+          "Feature": "Dependency_Adjusted_AI_Usage",
+          "Importance": 0.111064
+        },
+        {
+          "Feature": "Early_Warning_Risk_Index",
+          "Importance": 0.095177
+        },
+        {
+          "Feature": "AI_to_Study_Time_Ratio",
+          "Importance": 0.093566
+        },
+        {
+          "Feature": "Total_Learning_Hours",
+          "Importance": 0.07732
+        },
+        {
+          "Feature": "Pre_Semester_GPA",
+          "Importance": 0.074762
+        },
+        {
+          "Feature": "Traditional_Study_Hours",
+          "Importance": 0.067399
+        },
+        {
+          "Feature": "Anxiety_Dependency_Interaction",
+          "Importance": 0.046462
+        },
+        {
+          "Feature": "Anxiety_Level_During_Exams",
+          "Importance": 0.033398
+        },
+        {
+          "Feature": "Tool_Diversity",
+          "Importance": 0.029047
+        },
+        {
+          "Feature": "Perceived_AI_Dependency",
+          "Importance": 0.028976
+        },
+        {
+          "Feature": "High_AI_Use_Flag",
+          "Importance": 0.020492
+        },
+        {
+          "Feature": "Year_of_Study_Graduate",
+          "Importance": 0.013211
+        },
+        {
+          "Feature": "Institutional_Policy_Allowed_With_Citation",
+          "Importance": 0.01104
+        },
+        {
+          "Feature": "Prompt_Engineering_Skill_Intermediate",
+          "Importance": 0.011036
+        }
+      ]
+    }
+  },
+  "pca": {
+    "full": {
+      "numeric_feature_count": 21,
+      "components_for_95pct_variance": 10,
+      "first_component_variance": 0.33469,
+      "first_five_cumulative_variance": 0.765744,
+      "pca_path": "task2_outputs/tables/full_pca_explained_variance.csv"
+    },
+    "early_warning": {
+      "numeric_feature_count": 12,
+      "components_for_95pct_variance": 7,
+      "first_component_variance": 0.479851,
+      "first_five_cumulative_variance": 0.902899,
+      "pca_path": "task2_outputs/tables/early_warning_pca_explained_variance.csv"
+    }
+  },
+  "figures": {
+    "target_distribution": "task2_outputs/figures/target_distribution.png",
+    "numeric_distributions": "task2_outputs/figures/numeric_distributions.png",
+    "numeric_boxplots_by_target": "task2_outputs/figures/numeric_boxplots_by_target.png",
+    "correlation_heatmap": "task2_outputs/figures/correlation_heatmap.png",
+    "categorical_target_proportions": "task2_outputs/figures/categorical_target_proportions.png",
+    "outlier_counts": "task2_outputs/figures/outlier_counts.png",
+    "early_warning_mutual_information": "task2_outputs/figures/early_warning_mutual_information.png",
+    "early_warning_random_forest_importance": "task2_outputs/figures/early_warning_random_forest_importance.png",
+    "early_warning_pca_explained_variance": "task2_outputs/figures/early_warning_pca_explained_variance.png"
+  },
+  "outputs": {
+    "full_feature_engineered_dataset": "task2_outputs/task2_feature_engineered_full.csv",
+    "early_warning_feature_engineered_dataset": "task2_outputs/task2_feature_engineered_early_warning.csv",
+    "target_distribution": "task2_outputs/tables/target_distribution.csv",
+    "numerical_summary": "task2_outputs/tables/numerical_summary.csv",
+    "outlier_summary": "task2_outputs/tables/outlier_summary.csv",
+    "engineered_feature_summary": "task2_outputs/tables/engineered_feature_summary.csv",
+    "correlation_matrix": "task2_outputs/tables/correlation_matrix.csv",
+    "top_correlation_pairs": "task2_outputs/tables/top_correlation_pairs.csv",
+    "categorical_target_proportion_tables": {
+      "Major_Category": "task2_outputs/tables/Major_Category_target_proportions.csv",
+      "Year_of_Study": "task2_outputs/tables/Year_of_Study_target_proportions.csv",
+      "Primary_Use_Case": "task2_outputs/tables/Primary_Use_Case_target_proportions.csv",
+      "Prompt_Engineering_Skill": "task2_outputs/tables/Prompt_Engineering_Skill_target_proportions.csv",
+      "Paid_Subscription": "task2_outputs/tables/Paid_Subscription_target_proportions.csv",
+      "Institutional_Policy": "task2_outputs/tables/Institutional_Policy_target_proportions.csv"
+    }
+  }
+}

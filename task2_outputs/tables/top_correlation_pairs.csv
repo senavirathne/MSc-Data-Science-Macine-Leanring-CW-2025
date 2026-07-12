@@ -1,0 +1,13 @@
+Feature_1,Feature_2,Correlation,Abs_Correlation
+Early_Warning_Risk_Index,Learning_Balance_Score,-0.9512,0.9512
+Pre_Semester_GPA,Post_Semester_GPA,0.9265,0.9265
+Weekly_GenAI_Hours,Dependency_Adjusted_AI_Usage,0.9164,0.9164
+Perceived_AI_Dependency,Dependency_Adjusted_AI_Usage,0.8038,0.8038
+Weekly_GenAI_Hours,Total_Learning_Hours,0.784,0.784
+Perceived_AI_Dependency,Anxiety_Dependency_Interaction,0.7828,0.7828
+Anxiety_Dependency_Interaction,Early_Warning_Risk_Index,0.7788,0.7788
+Dependency_Adjusted_AI_Usage,Early_Warning_Risk_Index,0.7639,0.7639
+Anxiety_Level_During_Exams,Anxiety_Dependency_Interaction,0.7613,0.7613
+Anxiety_Dependency_Interaction,Learning_Balance_Score,-0.7392,0.7392
+Weekly_GenAI_Hours,Early_Warning_Risk_Index,0.731,0.731
+Perceived_AI_Dependency,Early_Warning_Risk_Index,0.7261,0.7261
