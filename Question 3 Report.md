@@ -1,13 +1,5 @@
 # Job-Shop Scheduling Optimization using Genetic Algorithm and Mixed Integer Programming
 
-## Executive Summary
-
-This report analyses the **Job-Shop Scheduling Problem (JSSP)** using the classical **Fisher and Thompson FT06** benchmark instance. The objective is to minimise makespan, defined as the completion time of the final operation in the schedule. FT06 contains **6 jobs**, **6 machines**, and **36 operations**, with a known optimal makespan of **55**.
-
-Two optimisation approaches were implemented and compared: a **Genetic Algorithm (GA)** and a **Mixed Integer Programming (MIP)** formulation. Both methods produced feasible schedules with makespan **55**, giving a **0.00% optimality gap** against the known FT06 optimum. The GA reached the optimum through an operation-based chromosome, schedule decoder, tournament selection, Job Order Crossover, swap mutation, elitism, and early stopping. The MIP model reached the same objective value and proved optimality using start-time variables, binary sequencing variables, precedence constraints, and machine non-overlap constraints.
-
-The comparison shows that MIP is the stronger method when a proof of optimality is required and the problem size is small enough for exact solution. GA is more flexible and scalable for larger or more dynamic scheduling environments where a high-quality schedule is more practical than waiting for a proof of optimality. A hybrid GA-MIP approach is a strong future direction because GA can generate strong feasible schedules while MIP can validate, improve, or bound them.
-
 ## 1. Introduction and Optimization Context
 
 ### 1.1 Problem Context
@@ -87,17 +79,7 @@ C_{\max} \geq 0,\qquad
 y_{jk,\ell r} \in \{0,1\}\quad((j,k)<(\ell,r),\; \mu_{jk}=\mu_{\ell r})
 $$
 
-### 1.4 Practical Meaning of the Constraints
-
-| Constraint Type | Practical Meaning |
-| --- | --- |
-| Job precedence | Operations of the same job must follow the required technological order. |
-| Machine capacity | A machine cannot process more than one operation at the same time. |
-| Non-preemption | Once an operation starts, it must finish without interruption. |
-| Makespan | The schedule length must cover the completion time of all operations. |
-| Binary sequencing | The model decides which operation goes first when two operations require the same machine. |
-
-### 1.5 Literature Context
+### 1.4 Literature Context
 
 The JSSP has been studied using exact optimization, constructive heuristics, metaheuristics, and hybrid algorithms. The literature supports both exact and heuristic approaches because scheduling problems are structured enough for mathematical modelling but difficult enough that exact methods may not scale to large cases.
 
@@ -113,7 +95,7 @@ The JSSP has been studied using exact optimization, constructive heuristics, met
 
 The literature confirms that exact methods such as MIP are valuable because they can prove optimality for small and moderate instances. However, the binary sequencing structure grows rapidly as problem size increases. Metaheuristics such as GA do not guarantee optimality, but they can explore large solution spaces efficiently and can be adapted to complex real-world constraints.
 
-### 1.6 Modelling Strategy
+### 1.5 Modelling Strategy
 
 The analysis uses both GA and MIP because the two methods answer different questions. GA tests whether an evolutionary search can find a high-quality feasible schedule efficiently. MIP provides a mathematically rigorous benchmark and, for FT06, can prove whether the obtained makespan is globally optimal.
 
@@ -186,37 +168,19 @@ $$
 
 This is used as the Big-M scheduling horizon in the MIP formulation.
 
-### 2.3 Workload and Lower-Bound Analysis
+### 2.3 Workload and Complexity Notes
 
-Machine workload identifies possible bottleneck resources.
-
-| Machine | Total Workload |
-| --- | ---: |
-| M1 | 40 |
-| M2 | 26 |
-| M3 | 26 |
-| M4 | 22 |
-| M5 | 40 |
-| M6 | 43 |
-
-Machine M6 has the largest workload, with 43 time units. Job workload analysis gives:
-
-| Job | Total Processing Time |
-| --- | ---: |
-| J1 | 26 |
-| J2 | 47 |
-| J3 | 34 |
-| J4 | 35 |
-| J5 | 25 |
-| J6 | 30 |
-
-The longest single job is J2 with 47 time units. Therefore, a simple lower bound on the makespan is:
+The total processing time is 197 time units. The largest machine workload is 43
+time units on M6, and the longest single job is J2 with 47 time units. Therefore,
+a simple lower bound is:
 
 $$
-C_{\max} \geq \max(43, 47) = 47
+C_{\max} \geq \max(43,47)=47
 $$
 
-The known optimum is 55, which is only 8 time units above this simple lower bound. This indicates that machine conflicts and operation precedence constraints add significant scheduling complexity beyond raw processing workload.
+The known FT06 optimum is 55. This benchmark value is used only for evaluation
+of solution quality; the GA still searches empirically, while the MIP model is
+used to prove optimality for this instance.
 
 ### 2.4 Complexity Analysis
 
@@ -342,16 +306,9 @@ The final GA configuration was executed on FT06 using seed 0. The generated run 
 | Known optimum | 55 |
 | Optimality gap | 0.00% |
 | Feasibility | Feasible |
-| Runtime in local run | 13.00 seconds |
+| Runtime in local run | 1.98 seconds |
 | Generations completed | 270 |
 | First generation reaching makespan 55 | 20 |
-
-The best 1-based chromosome obtained was:
-
-```text
-[2, 3, 3, 3, 6, 1, 4, 1, 6, 2, 2, 5, 4, 4, 5, 6, 3, 5,
- 6, 1, 4, 2, 5, 4, 3, 2, 1, 1, 3, 4, 6, 5, 6, 1, 2, 5]
-```
 
 The optimality gap is:
 
@@ -365,27 +322,13 @@ This confirms that the GA found an optimal schedule for FT06 in this run. The GA
 
 ### 3.8 Convergence Analysis
 
-![GA convergence on FT06](question3_report_assets/ga_convergence.png)
+![GA convergence on FT06](question3_report_assets/ga_convergence.svg)
 
 The convergence plot shows a steep improvement during the early generations. The initial best makespan was 62 and the initial average makespan was approximately 89.53. The best makespan reached 55 by generation 20. After that, the best curve remained flat at the known optimum because no better schedule exists for FT06. The average makespan continued to fluctuate around the high-50s because crossover and mutation still introduced weaker chromosomes, while elitism preserved the best solution.
 
 This behavior indicates that the selected representation and operators were effective for this small benchmark instance. The stopping rule ended the run at generation 270 after 250 generations without further improvement.
 
-### 3.9 Best Schedule
-
-![Best GA schedule Gantt chart](question3_report_assets/ga_gantt.png)
-
-The Gantt chart shows the best GA schedule with makespan 55. Each bar is one operation, grouped by machine. The chart visually confirms the two main feasibility properties: no machine processes overlapping operations, and all jobs follow their required operation sequence.
-
-The schedule also shows that several machines remain busy close to the end of the horizon, especially M4, M5, and M6. The final operations finish at time 55, which matches $C_{\max}=55$.
-
-The full decoded GA schedule is available in:
-
-```text
-question3_report_assets/ga_best_schedule.csv
-```
-
-### 3.10 Computational Efficiency and Scalability
+### 3.9 Computational Efficiency and Scalability
 
 The configured upper-bound evaluation effort is:
 
@@ -468,7 +411,7 @@ No equality constraints are required for this deterministic FT06 formulation. Fe
 
 ### 4.3 MIP Model Size
 
-For FT06, the MIP model contains:
+For FT06, the implemented MIP model contains:
 
 | Model Component | Count |
 | --- | ---: |
@@ -483,20 +426,6 @@ For FT06, the MIP model contains:
 | Total constraints | 246 |
 | Big-M horizon $H$ | 197 |
 
-The 90 binary variables arise because each of the 6 machines has 6 operations assigned to it. Each machine therefore has:
-
-$$
-\binom{6}{2} = 15
-$$
-
-operation pairs, giving:
-
-$$
-6 \times 15 = 90
-$$
-
-binary sequencing variables.
-
 ### 4.4 MIP Results
 
 The MIP model was solved using PuLP/CBC. The local solver run produced:
@@ -507,7 +436,7 @@ The MIP model was solved using PuLP/CBC. The local solver run produced:
 | Objective value / makespan | 55 |
 | Known optimum | 55 |
 | Optimality gap | 0.00% |
-| Runtime in local run | 19.05 seconds |
+| Runtime in local run | 4.31 seconds |
 | Feasibility | Satisfied |
 
 The MIP result has:
@@ -516,21 +445,11 @@ $$
 C_{\max} = 55
 $$
 
-Since this equals the known FT06 optimum, the MIP model proves optimality for the instance.
+Since this equals the known FT06 optimum, the MIP model proves optimality for
+the instance. The MIP schedule was generated from solved PuLP variable values,
+not entered manually.
 
-### 4.5 Optimal MIP Schedule
-
-![Optimal MIP schedule Gantt chart](question3_report_assets/mip_gantt.png)
-
-The MIP Gantt chart also finishes at time 55. It differs from the GA Gantt chart in some operation placements, but both are valid optimal schedules. This is expected because JSSP benchmark instances can have multiple optimal schedules with the same makespan.
-
-The full MIP schedule is available in:
-
-```text
-question3_report_assets/mip_optimal_schedule.csv
-```
-
-### 4.6 Feasibility and Constraint Satisfaction
+### 4.5 Feasibility and Constraint Satisfaction
 
 The MIP schedule satisfies all required feasibility conditions:
 
@@ -545,7 +464,7 @@ The MIP schedule satisfies all required feasibility conditions:
 
 Because the solver status is optimal, the schedule is not only feasible but also proven optimal for the given formulation and instance.
 
-### 4.7 MIP Scalability
+### 4.6 MIP Scalability
 
 For a general JSSP with $n$ jobs and $m$ machines, assuming each job visits each machine once:
 
@@ -574,10 +493,8 @@ Both GA and MIP produced an optimal makespan of 55 for FT06.
 
 | Method | Best Makespan | Known Optimum | Optimality Gap | Feasible | Runtime |
 | --- | ---: | ---: | ---: | --- | ---: |
-| Genetic Algorithm | 55 | 55 | 0.00% | Yes | 13.00 s |
-| MIP | 55 | 55 | 0.00% | Yes | 19.05 s |
-
-![GA and MIP comparison](question3_report_assets/method_comparison.png)
+| Genetic Algorithm | 55 | 55 | 0.00% | Yes | 1.98 s |
+| MIP | 55 | 55 | 0.00% | Yes | 4.31 s |
 
 The runtime values are local execution times and will vary by hardware, solver version, and environment. The important result is that both methods reached the same objective value. The key difference is that MIP proves optimality, while GA finds the optimum empirically and must be compared against a benchmark or exact method to confirm the gap.
 
@@ -665,23 +582,16 @@ MIP is the more appropriate choice when:
 - Decision-makers need confidence that no better schedule exists.
 - The mathematical formulation remains computationally manageable.
 
-### 5.9 Practical Limitations
-
-FT06 is useful for validating both methods because it has a known optimum and is small enough for exact solution. However, it is still a simplified benchmark. It does not include due dates, stochastic processing times, setup times, worker shifts, material availability, machine failures, or urgent job arrivals. Therefore, the comparison is valuable for methodological validation, but it does not fully represent industrial scheduling complexity.
-
-The MIP result is more rigorous for FT06 because it proves optimality. The GA result is more relevant to scalability and flexibility, especially for larger or more dynamic settings. Neither method is universally better; the best choice depends on problem size, time availability, required proof, and business constraints.
-
-### 5.10 Future Work and Methodological Improvements
+### 5.9 Possible Improvements
 
 The analysis could be strengthened through:
 
 1. Test larger benchmarks such as FT10, FT20, LA01, and LA20.
-2. Run the GA over many random seeds and report best, average, worst, standard deviation, and average runtime.
-3. Add local search to create a hybrid GA.
-4. Use a GA-MIP hybrid, where GA finds strong feasible solutions and MIP improves or validates them.
-5. Improve the MIP formulation using tighter Big-M values, valid inequalities, or alternative formulations.
-6. Parallelize GA fitness evaluation.
-7. Add real-world constraints such as setup times, due dates, maintenance windows, and machine breakdowns.
+2. Add local search to create a hybrid GA.
+3. Use a GA-MIP hybrid, where GA finds strong feasible solutions and MIP improves or validates them.
+4. Improve the MIP formulation using tighter Big-M values, valid inequalities, or alternative formulations.
+5. Parallelize GA fitness evaluation.
+6. Add real-world constraints such as setup times, due dates, maintenance windows, and machine breakdowns.
 
 ## 6. Conclusions and Recommendations
 
@@ -700,21 +610,4 @@ Overall, MIP is the stronger method for small instances where proof of optimalit
 - Goncalves, J. F., Mendes, J. J. M., and Resende, M. G. C. (2005). A hybrid genetic algorithm for the job shop scheduling problem.
 - King, A. J. and Hildebrand, R. (2024). Comparative approaches for job-shop scheduling using integer programming and related methods.
 - Ku, W. Y. and Beck, J. C. (2016). Mixed integer programming models for job-shop scheduling.
-- PuLP documentation: https://coin-or.github.io/pulp/
-- CBC documentation: https://coin-or.github.io/Cbc/intro.html
 - FT06 benchmark reference: https://www.jobshoppuzzle.com/benchmarks.html
-
-## Appendix: Reproducibility Artefacts
-
-The analysis outputs are stored with the report so that the schedules and figures can be checked independently.
-
-| Artefact | Description |
-| --- | --- |
-| `question3_generate_assets.py` | Script used to generate the GA/MIP schedules, metrics, and report figures. |
-| `question3_report_assets/ga_convergence.png` | GA convergence chart showing best and average makespan across generations. |
-| `question3_report_assets/ga_gantt.png` | Gantt chart for the best GA schedule. |
-| `question3_report_assets/mip_gantt.png` | Gantt chart for the optimal MIP schedule. |
-| `question3_report_assets/method_comparison.png` | Comparison chart for GA and MIP makespan/runtime results. |
-| `question3_report_assets/ga_best_schedule.csv` | Decoded operation-level GA schedule. |
-| `question3_report_assets/mip_optimal_schedule.csv` | Operation-level MIP schedule. |
-| `question3_report_assets/summary.json` | Summary metrics for the GA and MIP runs. |

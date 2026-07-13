@@ -1,37 +1,5 @@
 # Student Burnout Risk Prediction from Generative AI Usage
 
-## Executive Summary
-
-This report analyses the **Impact of AI on Students** dataset to develop a
-supervised machine learning model for predicting student burnout risk. The
-dataset contains **50,000 student records** and combines academic profile,
-generative AI usage behaviour, study habits, institutional policy, anxiety,
-skill retention, and burnout-risk labels.
-
-The analysis shows a clear association between burnout risk and the way students
-use generative AI. Students in the High burnout-risk group averaged **15.215
-weekly GenAI hours**, compared with **4.644 hours** for the Low-risk group. They
-also had lower traditional study hours, higher exam anxiety, slightly lower GPA,
-and lower skill-retention scores. Feature selection, model explainability, and
-visual analysis consistently identify `Weekly_GenAI_Hours`, AI-to-study balance,
-perceived AI dependency, study workload, and anxiety-related variables as the
-most important predictors.
-
-Five models were compared: Logistic Regression, KNN, Random Forest, XGBoost, and
-an Artificial Neural Network. **Logistic Regression with L1 regularisation** was
-selected as the final model because it achieved the best test weighted F1-score
-(**0.5340**), performed strongly in cross-validation, remained interpretable,
-and provided probability outputs for threshold tuning. Threshold tuning improved
-High-risk recall from **0.48** to **0.62**, which is important in a
-wellbeing-support context where missing high-risk students is costly.
-
-The model should be treated as a **human-in-the-loop decision-support tool**,
-not an automated disciplinary system. Because the dataset is synthetic and
-observational, results indicate predictive associations rather than causal
-proof. Any real deployment should use a leakage-aware early-warning feature set,
-obtain appropriate consent, protect student privacy, and monitor fairness across
-student groups.
-
 ## 1. Introduction, Dataset Overview, and Literature Context
 
 ### 1.1 Analytical Context
@@ -269,7 +237,7 @@ The preprocessing pipeline used:
 | Test set                 |                   10,000 rows |
 | Encoded classes          | 0 = High, 1 = Low, 2 = Medium |
 
-### 2.7 Feature Selection and Dimensionality Reduction
+### 2.7 Feature Selection
 
 Mutual information and Random Forest feature importance were used to identify
 the most informative predictors.
@@ -308,12 +276,6 @@ Both methods consistently ranked AI-use intensity and AI-study balance features
 near the top. This indicates that the most predictive information comes from how
 much students use GenAI, how that compares with traditional study, and how usage
 interacts with dependency and anxiety.
-
-PCA was also tested on the processed 38-feature matrix. The PCA analysis found
-that **23 principal components** were required to explain **95% of variance**.
-This suggests dimensionality reduction is possible, but the main modelling
-approach should retain feature names because interpretability is important for
-education and wellbeing decisions.
 
 ## 3. Modelling Methodology and Optimization
 
@@ -461,7 +423,26 @@ was a drop in overall accuracy and weighted F1. In a wellbeing intervention
 setting, this trade-off may be acceptable because missing High-risk students is
 more costly than flagging some additional false positives for human review.
 
-### 4.5 Final Model Selection
+### 4.5 Class-Imbalance Sensitivity Check
+
+The notebook was extended with a course-aligned class-imbalance experiment based
+on the ML 25 imbalance workflow. It compares the Logistic Regression baseline
+with `class_weight='balanced'`, SMOTE, and SMOTETomek, using the existing
+train/test split so that synthetic or resampled observations are created only
+inside the training process. The comparison reports weighted F1, macro F1,
+High-risk precision, High-risk recall, ROC-AUC, and PR-AUC.
+
+This check is important because High-risk recall can be improved either at
+training time, through balancing, or at decision time, through threshold tuning.
+The practical deployment choice should favour the option that improves
+High-risk recall without creating an unacceptable fall in High-risk precision or
+overall weighted F1. Since the original tuning already selected
+`class_weight=None` for Logistic Regression, the current final recommendation
+remains the interpretable Logistic Regression model with High-risk threshold
+tuning unless the SMOTE or SMOTETomek experiment produces a clearly better
+recall/precision trade-off when the notebook is rerun.
+
+### 4.6 Final Model Selection
 
 The selected model is **Logistic Regression with L1 regularisation**. It was
 selected because:
@@ -516,63 +497,32 @@ The explanation results are consistent with the feature-selection stage:
 previous GPA, perceived AI dependency, traditional study hours, institutional
 policy, and the dependency-anxiety interaction.
 
-### 5.2 Local Explanation Example
+Because the selected model is Logistic Regression, the notebook also
+generates a native coefficient and odds-ratio table for the High-risk class.
+Features with positive coefficients have odds ratios above 1 and increase the
+odds of a High-risk prediction, while features with negative coefficients have
+odds ratios below 1 and reduce those odds after preprocessing. This coefficient
+view complements SHAP and permutation importance: SHAP explains prediction
+contributions model-agnostically, while odds ratios provide a direct statistical
+interpretation of the final Logistic Regression model.
 
-One correctly predicted High-risk student was selected for local explanation.
-
-| Field                      |    Value |
-| -------------------------- | -------: |
-| Actual label               |     High |
-| Predicted label            |     High |
-| Probability of High        | 0.787769 |
-| Probability of Medium      | 0.197807 |
-| Probability of Low         | 0.014424 |
-| Weekly_GenAI_Hours         |   25.715 |
-| Traditional_Study_Hours    |    1.000 |
-| Perceived_AI_Dependency    |    7.000 |
-| Anxiety_Level_During_Exams |    9.000 |
-| AI_to_Study_Ratio          |  12.8575 |
-| Dependency_Anxiety_Index   |   63.000 |
-
-This local case is aligned with the global results. The student had extremely
-high GenAI usage, very low traditional study time, high dependency, and high
-exam anxiety. These values pushed the prediction toward High burnout risk.
-
-### 5.3 Fairness and Subgroup Analysis
+### 5.2 Fairness and Subgroup Analysis
 
 Accuracy, error rate, and High-risk recall were analysed across key student
 groups.
 
-**Error rate by selected group**
+| Fairness Check | Main Finding | Implication |
+| --- | --- | --- |
+| Error rate by major | Arts had the highest error rate, while STEM had the lowest. | Performance should be audited across academic disciplines. |
+| High-risk recall by major | Humanities had lower High-risk recall than STEM. | Some groups may be more likely to be missed. |
+| High-risk recall by paid subscription | Students without paid subscriptions had lower High-risk recall. | Access to paid tools may create an equity-related performance difference. |
+| High-risk recall by policy context | Recall differed across institutional AI-policy categories. | Deployment should monitor policy-related subgroup performance. |
 
-| Group Feature            | Highest Error Group | Error Rate | Lowest Error Group       | Error Rate |
-| ------------------------ | ------------------- | ---------: | ------------------------ | ---------: |
-| Major_Category           | Arts                |     0.4846 | STEM                     |     0.4510 |
-| Year_of_Study            | Sophomore           |     0.4828 | Freshman                 |     0.4467 |
-| Paid_Subscription        | No subscription     |     0.4730 | Subscription             |     0.4565 |
-| Institutional_Policy     | Actively_Encouraged |     0.4841 | Strict_Ban               |     0.4310 |
-| Prompt_Engineering_Skill | Intermediate        |     0.4791 | Advanced                 |     0.4410 |
-| Primary_Use_Case         | Ideation            |     0.4886 | Direct_Answer_Generation |     0.4491 |
-
-**High-risk recall by selected group**
-
-| Group Feature            | Lowest High-Risk Recall | Recall | Highest High-Risk Recall | Recall |
-| ------------------------ | ----------------------- | -----: | ------------------------ | -----: |
-| Major_Category           | Humanities              | 0.3765 | STEM                     | 0.5722 |
-| Year_of_Study            | Freshman                | 0.4239 | Graduate                 | 0.5446 |
-| Paid_Subscription        | No subscription         | 0.3740 | Subscription             | 0.5723 |
-| Institutional_Policy     | Actively_Encouraged     | 0.4308 | Strict_Ban               | 0.5982 |
-| Prompt_Engineering_Skill | Intermediate            | 0.4606 | Advanced                 | 0.5150 |
-| Primary_Use_Case         | Copywriting/Drafting    | 0.4174 | Direct_Answer_Generation | 0.5698 |
-
-These subgroup differences are important. For example, High-risk recall was much
-lower for students without paid subscriptions than for students with paid
-subscriptions. Similarly, High-risk recall was lower for Humanities students
-than STEM students. This does not prove bias by itself, but it signals that the
+These subgroup differences do not prove unfair treatment, but they show that the
 model should be audited before deployment and monitored continuously after
 deployment.
 
-### 5.4 Privacy, Ethics, and Responsible Use
+### 5.3 Privacy, Ethics, and Responsible Use
 
 Burnout risk prediction is sensitive because it combines academic behaviour,
 wellbeing indicators, and technology usage. Responsible deployment should follow
@@ -588,7 +538,7 @@ these principles:
 - Minimise sensitive data collection and protect student privacy.
 - Revalidate the model on real institutional data before practical use.
 
-### 5.5 Leakage and Deployment Caveat
+### 5.4 Leakage and Deployment Caveat
 
 The final analytical modelling pipeline used all available engineered
 predictors, including `Post_Semester_GPA`, `Skill_Retention_Score`,
@@ -602,217 +552,61 @@ Therefore, the reported model is best interpreted as an analytical benchmark. A
 deployment-ready version should be rebuilt using a leakage-aware early-warning
 feature set.
 
-## 6. Key Visual Findings
+## 6. Required Visual Evidence
 
-The most important visual outputs from the analysis are included below. These
-figures provide the clearest evidence for the modelling decisions and final
-recommendations.
+The PDF requires appropriate visualisations for EDA, model comparison, and explainability. The most relevant figures are summarised below without repeating every generated plot.
 
-### 6.1 Target Distribution
+### 6.1 Exploratory Visualisations
 
 ![Figure 1. Distribution of burnout risk level.](question1_report_assets/target_distribution.png)
 
 _Figure 1. Distribution of burnout risk level._
 
-The target distribution shows that **Medium** burnout risk is the largest class,
-followed by **Low**, while **High** is the smallest class. The imbalance is not
-extreme, but it is large enough to make plain accuracy misleading. This supports
-the use of weighted F1-score, macro averages, and High-risk recall during
-evaluation.
+The target distribution confirms a moderate class imbalance: Medium is the largest class, followed by Low and High. This supports using weighted F1, macro F1, PR-AUC, and class-level recall rather than accuracy alone.
 
-### 6.2 Weekly GenAI Usage Distribution
+![Figure 2. Weekly GenAI hours by burnout risk level.](question1_report_assets/weekly_genai_hours_by_burnout.png)
 
-![Figure 2. Distribution of weekly GenAI hours.](question1_report_assets/weekly_genai_hours_distribution.png)
+_Figure 2. Weekly GenAI hours by burnout risk level._
 
-_Figure 2. Distribution of weekly GenAI hours._
+The High-risk group shows substantially higher weekly GenAI use than the Low and Medium groups, supporting the feature-engineering focus on AI intensity and AI-to-study balance.
 
-The weekly GenAI-hours distribution is strongly right-skewed. Most students use
-GenAI for a relatively small number of hours, but a smaller group uses it very
-heavily, with values extending toward 40 hours. This visual pattern justifies
-both the IQR-based outlier treatment and the creation of `High_AI_Use_Flag`.
+![Figure 3. Correlation heatmap of numerical variables.](question1_report_assets/correlation_heatmap.png)
 
-### 6.3 Weekly GenAI Hours by Burnout Risk
+_Figure 3. Correlation heatmap of numerical variables._
 
-![Figure 3. Weekly GenAI hours by burnout risk level.](question1_report_assets/weekly_genai_hours_by_burnout.png)
+The heatmap shows strong relationships between related academic and AI-use variables, including the expected persistence between pre- and post-semester GPA and the relationship between GenAI hours and perceived dependency.
 
-_Figure 3. Weekly GenAI hours by burnout risk level._
+### 6.2 Feature Selection, Model Comparison, and Explainability
 
-This is one of the strongest exploratory graphs. The **High** burnout group has
-a much higher median and wider upper range of weekly GenAI hours than the
-**Low** and **Medium** groups. This supports the core finding that heavier AI
-use is strongly associated with higher burnout risk, especially when combined
-with lower traditional study time and higher dependency.
+![Figure 4. Top features by mutual information.](question1_report_assets/mutual_information_top_features.png)
 
-### 6.4 Correlation Heatmap
+_Figure 4. Top features by mutual information._
 
-![Figure 4. Correlation heatmap of numerical variables.](question1_report_assets/correlation_heatmap.png)
+Mutual information ranked `Weekly_GenAI_Hours`, `AI_to_Study_Ratio`, `High_AI_Use_Flag`, and `Perceived_AI_Dependency` among the strongest predictors.
 
-_Figure 4. Correlation heatmap of numerical variables._
+![Figure 5. Model comparison by weighted F1-score.](question1_report_assets/test_weighted_f1_model_comparison.png)
 
-The heatmap shows a very strong correlation between `Pre_Semester_GPA` and
-`Post_Semester_GPA` of about **0.93**, which is expected because academic
-performance tends to persist over time. It also shows a strong positive
-relationship between `Weekly_GenAI_Hours` and `Perceived_AI_Dependency` of about
-**0.67**. Many other numerical relationships are weak, which supports the need
-for engineered interaction features such as `AI_to_Study_Ratio` and
-`Dependency_Anxiety_Index`.
+_Figure 5. Model comparison by weighted F1-score._
 
-### 6.5 Feature Selection Graphs
+Logistic Regression, ANN, and XGBoost performed similarly, but Logistic Regression was selected because it achieved the best weighted F1 while remaining simpler and more interpretable.
 
-![Figure 5. Top features by mutual information.](question1_report_assets/mutual_information_top_features.png)
+![Figure 6. Threshold tuning for High-risk burnout detection.](question1_report_assets/high_risk_threshold_tuning.png)
 
-_Figure 5. Top features by mutual information._
+_Figure 6. Threshold tuning for High-risk burnout detection._
 
-![Figure 6. Top features by Random Forest importance.](question1_report_assets/random_forest_feature_importance.png)
+Threshold tuning improved High-risk recall, which is important because the model is intended for supportive intervention rather than fully automated decision-making.
 
-_Figure 6. Top features by Random Forest importance._
+![Figure 7. Permutation importance for the final model.](question1_report_assets/permutation_importance.png)
 
-Both feature-selection graphs identify `Weekly_GenAI_Hours` as the strongest
-predictor. Mutual information gives high importance to AI-use balance variables
-such as `AI_to_Study_Ratio`, `High_AI_Use_Flag`, `Perceived_AI_Dependency`, and
-`Total_Study_Load`. Random Forest importance confirms the same pattern but also
-gives more weight to academic and outcome-related variables such as
-`Pre_Semester_GPA`, `GPA_Change`, `Skill_Retention_Score`, and
-`Post_Semester_GPA`.
+_Figure 7. Permutation importance for the final model._
 
-The agreement between the two methods increases confidence that the model is
-learning meaningful patterns rather than relying on a single unstable
-feature-ranking technique.
+Permutation importance confirms that `Weekly_GenAI_Hours` is the strongest individual feature for the final model.
 
-### 6.6 PCA Explained Variance
+![Figure 8. High-risk recall by paid subscription.](question1_report_assets/fairness_high_risk_recall_by_paid_subscription.png)
 
-![Figure 7. Cumulative explained variance by PCA components.](question1_report_assets/pca_explained_variance.png)
+_Figure 8. High-risk recall by paid subscription._
 
-_Figure 7. Cumulative explained variance by PCA components._
-
-The PCA curve rises gradually rather than flattening after a small number of
-components. The PCA analysis found that **23 components** were needed to explain
-**95% of variance**. This means dimensionality reduction is possible, but it
-would reduce interpretability. Since the project is about educational decision
-support, retaining named features is preferable.
-
-### 6.7 Model Comparison
-
-![Figure 8. Model comparison by weighted F1-score.](question1_report_assets/test_weighted_f1_model_comparison.png)
-
-_Figure 8. Model comparison by weighted F1-score._
-
-The model comparison graph shows that Logistic Regression, ANN, and XGBoost
-perform very similarly, all around **0.53 weighted F1-score**. Logistic
-Regression is slightly better, but the small gap shows that the prediction task
-is difficult and that more complex models do not add much performance. This
-supports selecting Logistic Regression because it is simpler, faster, and more
-interpretable.
-
-### 6.8 Final Confusion Matrix
-
-![Figure 9. Confusion matrix for the final Logistic Regression model.](question1_report_assets/final_model_confusion_matrix.png)
-
-_Figure 9. Confusion matrix for the final Logistic Regression model._
-
-The confusion matrix shows that the final model correctly classifies **1,193
-High**, **1,596 Low**, and **2,550 Medium** test records. The largest problem is
-that many actual **High** and **Low** records are predicted as **Medium**. This
-indicates that Medium acts as an overlap class and explains why High-risk recall
-is limited before threshold tuning.
-
-### 6.9 ROC and Precision-Recall Curves
-
-![Figure 10. One-vs-rest ROC curves for the final model.](question1_report_assets/roc_curves_final_model.png)
-
-_Figure 10. One-vs-rest ROC curves for the final model._
-
-![Figure 11. One-vs-rest precision-recall curves for the final model.](question1_report_assets/precision_recall_curves_final_model.png)
-
-_Figure 11. One-vs-rest precision-recall curves for the final model._
-
-The ROC curves show that the model separates **High** and **Low** classes better
-than random, while the **Medium** curve is weaker and closer to the diagonal.
-The precision-recall curves show the intervention trade-off clearly: the
-High-risk curve has strong precision at low recall, but precision declines as
-recall increases. In student-support settings, this trade-off is important
-because the institution may prefer to catch more High-risk students even if it
-produces more false positives.
-
-### 6.10 High-Risk Threshold Tuning
-
-![Figure 12. Threshold tuning for High-risk burnout detection.](question1_report_assets/high_risk_threshold_tuning.png)
-
-_Figure 12. Threshold tuning for High-risk burnout detection._
-
-![Figure 13. Confusion matrix after threshold tuning.](question1_report_assets/threshold_tuned_confusion_matrix.png)
-
-_Figure 13. Confusion matrix after threshold tuning._
-
-The threshold-tuning graph shows that High-risk recall is highest at low
-thresholds and falls as the threshold increases, while precision rises. The best
-High-risk F1 occurs around **0.30-0.35**. The selected threshold of **0.30**
-improved High-risk recall from **0.48** to **0.62**.
-
-The tuned confusion matrix shows the practical effect: correctly identified
-High-risk students increased from **1,193** to **1,545**, and High-risk students
-incorrectly predicted as Medium decreased from **1,104** to **752**. The
-trade-off is that more Low and Medium students are flagged as High, so threshold
-tuning should be used only as part of human-reviewed wellbeing support.
-
-### 6.11 Explainability Graphs
-
-![Figure 14. Permutation importance for the final model.](question1_report_assets/permutation_importance.png)
-
-_Figure 14. Permutation importance for the final model._
-
-![Figure 15. SHAP global summary for the High-risk class.](question1_report_assets/shap_high_class_summary.png)
-
-_Figure 15. SHAP global summary for the High-risk class._
-
-![Figure 16. Mean absolute SHAP feature importance.](question1_report_assets/shap_bar_importance.png)
-
-_Figure 16. Mean absolute SHAP feature importance._
-
-The permutation-importance graph shows that `Weekly_GenAI_Hours` is by far the
-most important raw feature. The SHAP summary for the High-risk class adds
-directional interpretation: high values of `Weekly_GenAI_Hours` push predictions
-toward High risk, while low values push away from High risk. Lower
-`Pre_Semester_GPA`, higher `Perceived_AI_Dependency`, lower
-`Traditional_Study_Hours`, strict-ban policy, and higher
-`Dependency_Anxiety_Index` also contribute to High-risk predictions.
-
-The SHAP bar chart confirms the same global ranking, with weekly GenAI hours
-dominating the final model's predictions. This consistency across permutation
-importance and SHAP strengthens the explainability findings.
-
-### 6.12 Fairness and Subgroup Graphs
-
-![Figure 17. Error rate by major category.](question1_report_assets/fairness_error_by_major.png)
-
-_Figure 17. Error rate by major category._
-
-![Figure 18. High-risk recall by major category.](question1_report_assets/fairness_high_risk_recall_by_major.png)
-
-_Figure 18. High-risk recall by major category._
-
-![Figure 19. High-risk recall by paid subscription.](question1_report_assets/fairness_high_risk_recall_by_paid_subscription.png)
-
-_Figure 19. High-risk recall by paid subscription._
-
-![Figure 20. High-risk recall by institutional policy.](question1_report_assets/fairness_high_risk_recall_by_policy.png)
-
-_Figure 20. High-risk recall by institutional policy._
-
-The fairness graphs reveal subgroup differences that require monitoring. Overall
-error rates by major are relatively close, but Arts has the highest error rate
-and STEM has the lowest. High-risk recall shows larger differences: Humanities
-students have much lower High-risk recall than STEM students.
-
-The paid-subscription graph is especially important. High-risk recall is much
-lower for students without paid subscriptions than for students with paid
-subscriptions. This could create an equity issue if students with less access to
-paid tools are more likely to be missed by the support system. The
-institutional-policy graph also shows higher High-risk recall under strict-ban
-contexts than under encouraged or citation-allowed contexts.
-
-These graphs do not prove unfair treatment, but they clearly show that the model
-should be audited across student groups before deployment.
+The fairness visual shows a subgroup recall difference by paid subscription status, so deployment should include subgroup monitoring and periodic fairness review.
 
 ## 7. Cloud Deployment and MLOps Strategy
 
@@ -830,29 +624,58 @@ The deployed system should support two prediction modes:
 | Batch inference     | Weekly or monthly scoring of enrolled students for student-support dashboards      | Student ID, predicted burnout-risk class, class probabilities, key risk drivers, timestamp |
 | Real-time inference | Advisor-facing check during a support session or after a student survey submission | Predicted risk class, probability scores, explanation summary                              |
 
-### 7.2 Proposed Cloud Architecture
+### 7.2 Proposed GCP Cloud Architecture
 
-An AWS-based architecture is suitable because it provides managed storage,
-container hosting, model registry options, monitoring, security controls, and
-scalable deployment services.
+A Google Cloud Platform (GCP) architecture is appropriate because the selected
+Logistic Regression pipeline is lightweight, interpretable, and can be served
+efficiently through a containerised API. The deployment should use managed GCP
+services so that the university team can focus on governance, monitoring, and
+safe use rather than server administration.
 
-| Layer               | Recommended Service                                                 | Role                                                                            |
-| ------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| Data ingestion      | Amazon S3, AWS Glue                                                 | Store raw student records, processed datasets, and feature-engineering outputs. |
-| Feature processing  | AWS Glue or SageMaker Processing                                    | Run cleaning, encoding, feature engineering, and validation jobs.               |
-| Experiment tracking | MLflow on EC2/ECS or SageMaker Experiments                          | Track model versions, parameters, metrics, and artefacts.                       |
-| Model registry      | SageMaker Model Registry or MLflow Model Registry                   | Store approved model versions and metadata.                                     |
-| Model serving       | FastAPI container on AWS ECS Fargate or SageMaker Endpoint          | Serve predictions through a controlled REST API.                                |
-| Container registry  | Amazon ECR                                                          | Store Docker images for the prediction service.                                 |
-| Batch scoring       | AWS Batch, ECS scheduled task, or SageMaker Batch Transform         | Run scheduled predictions for student-support dashboards.                       |
-| Monitoring          | Amazon CloudWatch, Evidently-style drift reports, custom dashboards | Track API health, prediction distribution, drift, and model performance.        |
-| Access control      | IAM, VPC, KMS, Secrets Manager                                      | Enforce role-based access, encryption, and secure credential management.        |
+The proposed architecture is:
+
+```text
+Student survey / MIS data
+        |
+        v
+Cloud Storage raw-data bucket --> Vertex AI Pipeline / Cloud Run Job
+        |                                  |
+        v                                  v
+Cloud Storage processed-data bucket   trained model artefact
+        |                                  |
+        v                                  v
+BigQuery monitoring tables       Vertex AI Model Registry
+                                           |
+                                           v
+                                   Docker image in Artifact Registry
+                                           |
+                                           v
+                          Cloud Run FastAPI prediction service
+                                           |
+                                           v
+                        Advisor dashboard / support workflow
+```
+
+| Layer | GCP service | Role |
+| --- | --- | --- |
+| Raw and processed data storage | Cloud Storage | Store raw survey extracts, processed feature tables, model artefacts, and batch-scoring files using versioned bucket paths. |
+| Analytics and monitoring store | BigQuery | Store prediction logs, drift statistics, evaluation results, and dashboard-ready monitoring tables. |
+| Feature processing and batch jobs | Vertex AI Pipelines or Cloud Run Jobs | Run data validation, preprocessing, feature engineering, retraining, and scheduled batch inference. |
+| Experiment tracking | Vertex AI Experiments or MLflow backed by Cloud Storage/BigQuery | Track parameters, datasets, metrics, artefacts, and model-selection decisions. |
+| Model registry | Vertex AI Model Registry | Store approved model versions, metadata, aliases, evaluation results, and lifecycle status. |
+| Container registry | Artifact Registry | Store Docker images for the FastAPI inference service and batch-scoring jobs. |
+| Real-time model serving | Cloud Run | Serve a Dockerised FastAPI application with autoscaling, HTTPS, revision management, and controlled access. |
+| Batch inference | Cloud Scheduler + Cloud Run Jobs, or Vertex AI batch pipeline | Score weekly/monthly student records and write results to Cloud Storage or BigQuery. |
+| Monitoring and logging | Cloud Logging, Cloud Monitoring, Error Reporting, BigQuery dashboards | Track API health, errors, latency, prediction distributions, drift, and performance when labels arrive. |
+| Security and governance | IAM, service accounts, Secret Manager, Cloud KMS, VPC controls, audit logs | Enforce least-privilege access, encryption, secret management, network protection, and traceability. |
 
 The architecture should keep personally identifiable student data encrypted at
 rest and in transit. Access to predictions should be restricted to authorised
-support staff, and all prediction access should be logged.
+student-support staff through IAM and application-level role controls. Prediction
+requests, prediction outputs, model versions, and human follow-up actions should
+be logged for auditability.
 
-### 7.3 Model Packaging and API Design
+### 7.3 Model Packaging, Containerisation, and API Design
 
 The final Logistic Regression pipeline should be packaged as a versioned
 artefact containing:
@@ -865,79 +688,123 @@ artefact containing:
 - Model metadata, including training date, dataset version, metrics, and known
   limitations.
 
-The model can be served through a Dockerised FastAPI application. A typical API
-design would include:
+The artefact should be saved as a single reproducible package, for example:
+
+```text
+model_package/
+  model.joblib
+  feature_schema.json
+  label_mapping.json
+  threshold.json
+  metrics.json
+  model_card.md
+```
+
+The model can then be served through a Dockerised FastAPI application. Docker
+improves portability because the same application image can run locally, in
+testing, and on Cloud Run with the same Python version and dependencies. It also
+improves scalability because Cloud Run can start multiple identical container
+instances when request volume increases.
+
+A minimal container structure would be:
+
+```text
+deployment/
+  app.py
+  requirements.txt
+  Dockerfile
+  model_package/
+```
+
+A typical API design would include:
 
 | Endpoint              | Purpose                                                                                                             |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | `GET /health`         | Confirms the service is running.                                                                                    |
 | `GET /model-info`     | Returns model version, training date, and approved metric summary.                                                  |
 | `POST /predict`       | Accepts one student record and returns class probabilities, predicted class, and threshold-adjusted High-risk flag. |
-| `POST /batch-predict` | Accepts a batch of records or an S3 file reference for scheduled scoring.                                           |
+| `POST /batch-predict` | Accepts a batch of records or a Cloud Storage file reference for scheduled scoring.                                 |
 
 The API response should include probability scores rather than only a hard class
 label. This allows advisors to interpret uncertain cases more carefully and
 supports threshold tuning for High-risk intervention.
 
+Real-time inference is appropriate when an advisor submits one student record
+during a support session. Batch inference is appropriate for weekly or monthly
+scoring of many students, where the output is written to BigQuery or Cloud
+Storage for review in a dashboard.
+
 ### 7.4 MLOps Pipeline
 
-A production workflow should separate experimentation, validation, approval, and
-deployment.
+A production workflow should separate experimentation, validation, approval,
+deployment, and monitoring. This follows the ML 25 MLOps maturity idea:
 
-| MLOps Stage         | Implementation                                                                                                               |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Data versioning     | Store raw and processed datasets in S3 using date-based paths and dataset metadata.                                          |
-| Code versioning     | Manage preprocessing, training, and API code in Git.                                                                         |
-| Experiment tracking | Log hyperparameters, cross-validation scores, test metrics, feature lists, and artefacts in MLflow or SageMaker Experiments. |
-| Automated testing   | Validate feature schema, missing values, class labels, API responses, and prediction reproducibility.                        |
-| Model validation    | Require minimum weighted F1, High-risk recall, ROC-AUC, PR-AUC, and subgroup fairness checks before approval.                |
-| CI/CD               | Use GitHub Actions or AWS CodePipeline to build Docker images, run tests, push to ECR, and deploy approved versions.         |
-| Model registry      | Promote models from staging to production only after metric and ethics review.                                               |
-| Rollback            | Keep the previous model version available for immediate rollback if monitoring detects failures.                             |
+- Level 0: the current notebook/report workflow.
+- Level 2 target: automated training, testing, packaging, and deployment.
+- Level 3 target: governed model promotion, drift monitoring, rollback, audit
+  logs, and retraining triggers.
+
+| MLOps stage | GCP implementation |
+| --- | --- |
+| Data versioning | Store raw and processed datasets in Cloud Storage using immutable date/version paths such as `raw/2026-07-12/` and `processed/v1/`. For stricter reproducibility, use DVC with a GCS remote. |
+| Code versioning | Manage notebooks, training scripts, API code, Dockerfile, and pipeline definitions in Git. |
+| Experiment tracking | Log model type, hyperparameters, cross-validation scores, test metrics, feature list, dataset version, threshold, and artefacts in Vertex AI Experiments or MLflow. |
+| Model versioning | Register candidate and approved models in Vertex AI Model Registry with status labels such as `candidate`, `staging`, `approved`, and `production`. |
+| Automated testing | Test feature schema, missing-value handling, invalid categories, class-label mapping, prediction reproducibility, API response format, and fairness metric calculation. |
+| Model validation | Require minimum weighted F1, High-risk recall, ROC-AUC, PR-AUC, calibration checks, and subgroup fairness checks before approval. |
+| CI/CD | Use Cloud Build or GitHub Actions to run tests, build the Docker image, push it to Artifact Registry, and deploy the approved image to a Cloud Run revision. |
+| Deployment control | Use staged deployment or traffic splitting in Cloud Run, then promote the new revision only after health checks and monitoring pass. |
+| Rollback | Keep the previous Cloud Run revision and previous model version available for immediate rollback. |
 
 The pipeline should not automatically deploy a model only because a metric
 improves slightly. Because burnout prediction is sensitive, deployment approval
 should include a human review of performance, fairness, privacy, and leakage
 risks.
 
+The automated pipeline should run in three cases:
+
+1. A planned retraining cycle at the end of each academic term.
+2. A monitored drift or performance alert.
+3. A manually approved model improvement from the data-science team.
+
 ### 7.5 Monitoring and Maintenance
 
 Model monitoring should cover technical health, data quality, prediction
 behaviour, and real-world effectiveness.
 
-| Monitoring Area        | Example Checks                                                                                                          |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Service health         | API latency, error rate, container restarts, failed batch jobs.                                                         |
-| Data quality           | Missing values, invalid categories, out-of-range GPA or hour values, schema mismatch.                                   |
-| Data drift             | Changes in `Weekly_GenAI_Hours`, `Perceived_AI_Dependency`, `Traditional_Study_Hours`, and categorical distributions.   |
-| Prediction drift       | Changes in Low/Medium/High prediction proportions and High-risk probability distribution.                               |
-| Performance monitoring | Periodic labelled evaluation when true outcomes become available.                                                       |
-| Fairness monitoring    | High-risk recall and false-negative rates by major, year of study, paid subscription, policy context, and prompt skill. |
-| Human feedback         | Advisor feedback on whether flagged students were appropriate for review.                                               |
+| Monitoring area | Example checks | GCP implementation |
+| --- | --- | --- |
+| Service health | API latency, error rate, container starts, failed batch jobs. | Cloud Run metrics, Cloud Monitoring dashboards, Cloud Logging, Error Reporting. |
+| Data quality | Missing values, invalid categories, out-of-range GPA or hour values, schema mismatch. | Validation job writes failures to BigQuery and triggers Cloud Monitoring alerts. |
+| Data drift | Changes in `Weekly_GenAI_Hours`, `Perceived_AI_Dependency`, `Traditional_Study_Hours`, and categorical distributions. | Scheduled drift job compares current input distributions with the training baseline and stores PSI/KS-style statistics. |
+| Prediction drift | Changes in Low/Medium/High prediction proportions and High-risk probability distribution. | Prediction logs are aggregated in BigQuery and visualised through a monitoring dashboard. |
+| Concept drift | Relationship between features and burnout outcome changes over time. | Recalculate labelled performance once later wellbeing outcomes become available. |
+| Performance monitoring | Weighted F1, macro F1, High-risk recall, High-risk precision, ROC-AUC, and PR-AUC on newly labelled data. | Evaluation pipeline compares new metrics with production approval thresholds. |
+| Fairness monitoring | High-risk recall and false-negative rates by major, year of study, paid subscription, policy context, and prompt skill. | Scheduled subgroup reports in BigQuery with alerts for large degradation. |
+| Human feedback | Advisor feedback on whether flagged students were appropriate for review. | Feedback form or dashboard table linked to prediction ID and model version. |
 
 Retraining should be scheduled at least once per academic term, or sooner if
 drift is detected. Retraining should use the most recent labelled data, but the
 early-warning deployment model should exclude post-semester or outcome-like
-features that are not available before intervention.
-
-### 7.6 Deployment Risk Controls
-
-Because the model predicts a wellbeing-related outcome, the deployment design
-must include safeguards:
-
-- Use predictions only for supportive outreach, not disciplinary action.
-- Show probabilities and explanation summaries to human reviewers.
-- Avoid exposing raw sensitive features to unnecessary users.
-- Encrypt student data in storage and transit.
-- Maintain audit logs of prediction access and intervention actions.
-- Provide a clear process for students to challenge or contextualise decisions.
-- Reassess fairness and subgroup performance before each production release.
+features that are not available before intervention. A retrained model should
+move through candidate, staging, approval, and production states rather than
+being pushed directly into use.
 
 This deployment strategy is appropriate because the selected model is
 interpretable, relatively lightweight, easy to package, and fast enough for both
-batch and real-time scoring. The main limitation is that the current analytical
-model uses some post-semester variables; therefore, the production version
-should be retrained on a leakage-aware feature set before real use.
+batch and real-time scoring. Cloud Run is suitable because the API workload is
+request-based and does not require continuously managed servers. Cloud Storage
+and BigQuery separate data storage from serving, Artifact Registry makes the
+container image reproducible, and Vertex AI Model Registry provides model
+lifecycle governance. Cloud Monitoring and Cloud Logging support operational
+visibility, while IAM, Secret Manager, and encryption controls support privacy
+and security. Because the outcome is wellbeing-related, predictions should be
+used only for supportive outreach, with human review, audit logs, encryption,
+fairness monitoring, and rollback before any production use.
+
+The main limitation is that the current analytical model uses some post-semester
+variables; therefore, the production version should be retrained on a
+leakage-aware feature set before real use.
 
 ## 8. Conclusions and Recommendations
 
@@ -964,6 +831,20 @@ groups.
 
 ## References
 
+- Google Cloud. (n.d.).
+  [Cloud Run documentation](https://docs.cloud.google.com/run/docs).
+- Google Cloud. (n.d.).
+  [Cloud Storage documentation](https://docs.cloud.google.com/storage/docs).
+- Google Cloud. (n.d.).
+  [Artifact Registry documentation](https://docs.cloud.google.com/artifact-registry/docs).
+- Google Cloud. (n.d.).
+  [Cloud Build documentation](https://docs.cloud.google.com/build/docs).
+- Google Cloud. (n.d.).
+  [Cloud Monitoring documentation](https://docs.cloud.google.com/monitoring/docs).
+- Google Cloud. (n.d.).
+  [Vertex AI Model Registry introduction](https://docs.cloud.google.com/vertex-ai/docs/model-registry/introduction).
+- Google Cloud. (n.d.).
+  [Secret Manager documentation](https://docs.cloud.google.com/secret-manager/docs).
 - Jadon, L. (n.d.).
   [Impact of AI on Students](https://www.kaggle.com/datasets/laveshjadon/ai-impact-on-students).
   Kaggle.

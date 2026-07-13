@@ -1,38 +1,5 @@
 # Brent Crude Oil Price Forecasting and Volatility Analysis
 
-## Executive Summary
-
-This report analyses daily Brent crude oil spot prices from **2005-01-03 to
-2025-12-31** using a complete time-series forecasting and volatility-modelling
-workflow. Brent is a globally important crude oil benchmark, and reliable
-short-term price and risk estimates are useful for energy traders, importers,
-exporters, airlines, shipping firms, governments, and policy planners.
-
-The analysis shows that Brent prices contain strong regime shifts, structural
-breaks, crisis-driven shocks, weak calendar seasonality, and clear volatility
-clustering. The 2008 financial crisis, the 2014-2016 oil-price collapse, the
-2020 pandemic shock, and the 2022 energy-market disruption are all visible in
-the historical series.
-
-For 30-business-day-ahead price forecasting, the **Naive Baseline** was the best
-model on the common test period, with **MAE 5.0340**, **RMSE 6.1968**, and
-**MAPE 6.4872%**. SARIMAX performed almost identically, while LSTM and XGBoost
-were weaker. This result is important: for this univariate Brent series, model
-complexity did not outperform price persistence over the selected test window.
-
-For volatility modelling, the **GARCH(1,1)-StudentT** model was selected. It
-captured volatility clustering effectively, with \(\alpha+\beta=0.9934\),
-indicating highly persistent volatility shocks. From the dataset endpoint of
-**2025-12-31**, the 30-business-day volatility forecast increased from
-**1.4637%** to **1.7704%**, suggesting a modest rise in expected daily risk over
-the forecast horizon.
-
-The practical recommendation is to use a persistence or SARIMAX forecast as a
-transparent price-level benchmark and use GARCH separately as a volatility-risk
-monitoring tool. Future improvements should add exogenous market drivers such as
-inventories, OPEC decisions, futures curves, USD index, equity volatility,
-interest rates, and geopolitical risk indicators.
-
 ## 1. Introduction, Data Context, and Forecasting Objective
 
 ### 1.1 Analytical Context
@@ -323,8 +290,16 @@ Four price forecasting approaches were evaluated:
 
 ### 3.3 SARIMAX Development
 
+The SARIMAX workflow followed the course ARIMA/SARIMA/SARIMAX pattern:
+visualise the level series, test stationarity, compare the first difference and
+log returns, inspect ACF/PACF behaviour, tune candidate orders on a
+time-respecting validation period, and evaluate the selected specification only
+on the held-out test period. The ADF tests showed that the price level required
+differencing, while the differenced and return series were more appropriate for
+ARIMA-style modelling.
+
 The SARIMAX grid tested multiple ARIMA orders and one short seasonal
-specification. The best validation model was:
+specification using rolling-origin validation. The best validation model was:
 
 | Parameter      | Selected Value |
 | -------------- | -------------- |
@@ -391,6 +366,10 @@ The final LSTM test performance was:
 | ----- | -----: | -----: | -------: | --------: |
 | LSTM  | 5.9370 | 7.3017 |   7.5695 |    7.7119 |
 
+The LSTM workflow follows the course sequence-modelling structure: scale the
+series, create 60-day lookback windows, tune model settings on a validation
+period, and use early stopping to reduce overfitting.
+
 ### 3.6 Final Price Forecasting Comparison
 
 The final test-set comparison used 756 common test dates.
@@ -450,7 +429,7 @@ _Figure 11. Rolling volatility of Brent crude oil returns._
 
 The rolling return-volatility plot shows strong volatility clustering.
 Volatility rises sharply during crisis periods, especially 2008-2009 and 2020.
-This supports formal ARCH testing and GARCH modelling.
+This supports GARCH modelling.
 
 ![Figure 12. ACF of squared Brent daily log returns.](question2_report_assets/acf_squared_returns.png)
 
@@ -461,65 +440,25 @@ This is direct visual evidence that volatility is predictable from past
 volatility, which is exactly the behaviour that GARCH models are designed to
 capture.
 
-### 4.2 Formal Tests for ARCH Effects
+### 4.2 GARCH Model and Parameter Interpretation
 
-The Ljung-Box test on squared returns and the ARCH LM test both supported
-volatility clustering.
+The rolling-volatility plot and squared-return ACF showed changing variance and
+volatility clustering. Therefore, a GARCH model was appropriate for the Brent
+return series.
 
-| Test                        |      Result |
-| --------------------------- | ----------: |
-| Ljung-Box p-value at lag 10 | 9.3484e-228 |
-| Ljung-Box p-value at lag 20 |      0.0000 |
-| Ljung-Box p-value at lag 30 |      0.0000 |
-| ARCH LM statistic           |    883.9360 |
-| ARCH LM p-value             |      0.0000 |
+A **GARCH(1,1)** specification with Student-t errors was selected because Brent returns contain heavy tails and extreme observations. The estimated parameters were:
 
-Since the p-values are effectively zero, there is strong evidence of ARCH
-effects.
+| Parameter | Estimate | Interpretation |
+| --- | ---: | --- |
+| `omega` | 0.054424 | Baseline variance component. |
+| `alpha[1]` | 0.085461 | Reaction of volatility to new shocks. |
+| `beta[1]` | 0.907902 | Persistence of previous volatility. |
+| `alpha + beta` | 0.993363 | Very high volatility persistence. |
+| `nu` | 5.7402 | Heavy-tailed Student-t return distribution. |
 
-### 4.3 GARCH Model Selection
+The persistence value of **0.9934** is very close to one. This indicates that volatility shocks decay slowly, so major oil-market events can influence expected risk for many future days.
 
-Two GARCH(1,1) specifications were compared: Normal errors and Student-t errors.
-
-| Model               | Distribution |         AIC |         BIC | Log-Likelihood |
-| ------------------- | ------------ | ----------: | ----------: | -------------: |
-| GARCH(1,1)-StudentT | t            | 19,396.6204 | 19,428.8499 |    -9,693.3102 |
-| GARCH(1,1)-Normal   | normal       | 19,668.5192 | 19,694.3028 |    -9,830.2596 |
-
-The Student-t model was selected because it had the lower AIC and BIC. This is
-sensible because Brent returns have heavy tails and extreme observations.
-
-### 4.4 GARCH Parameter Interpretation
-
-| Parameter                          | Estimate | Interpretation                        |
-| ---------------------------------- | -------: | ------------------------------------- |
-| `omega`                            | 0.054424 | Baseline variance component           |
-| `alpha[1]`                         | 0.085461 | Volatility reaction to new shocks     |
-| `beta[1]`                          | 0.907902 | Volatility persistence                |
-| `alpha + beta`                     | 0.993363 | Very high persistence                 |
-| Long-run daily volatility estimate |  2.8636% | Approximate long-run volatility level |
-| Student-t degrees of freedom, `nu` |   5.7402 | Heavy-tailed return distribution      |
-
-The persistence value of **0.9934** is very close to one. This indicates that
-volatility shocks decay slowly, so major oil-market events can influence risk
-for many future days.
-
-### 4.5 GARCH Diagnostics
-
-After fitting the Student-t GARCH model, diagnostics were applied to
-standardized residuals.
-
-| Diagnostic                                                  | Result |
-| ----------------------------------------------------------- | -----: |
-| Ljung-Box p-value on squared standardized residuals, lag 10 | 0.7868 |
-| Ljung-Box p-value on squared standardized residuals, lag 20 | 0.5815 |
-| Ljung-Box p-value on squared standardized residuals, lag 30 | 0.5902 |
-| ARCH LM p-value on standardized residuals                   | 0.7852 |
-
-The high p-values indicate that the GARCH model removed most remaining ARCH
-effects.
-
-### 4.6 GARCH Forecast Evaluation
+### 4.3 GARCH Forecast Evaluation
 
 The GARCH forecast volatility was compared with absolute returns, squared
 returns, and 20-day realized volatility.
@@ -542,17 +481,6 @@ fluctuation proxies is statistically significant but weak. This means GARCH is
 useful as a volatility-risk indicator, but it should not be treated as a perfect
 day-by-day volatility forecast.
 
-### 4.7 Next 30-Business-Day Volatility Forecast from the Dataset Endpoint
-
-![Figure 14. GARCH 30-business-day ahead volatility forecast.](question2_report_assets/garch_future_30day_volatility.png)
-
-_Figure 14. GARCH 30-business-day ahead volatility forecast._
-
-Using the dataset endpoint of **2025-12-31**, the 30-business-day-ahead
-volatility forecast covers **2026-01-01** to **2026-02-11**. The forecast rises
-gradually from **1.4637%** to **1.7704%**, suggesting a modest increase in
-expected daily volatility over that forecast horizon.
-
 ## 5. Comparative Insights and Practical Interpretation
 
 ### 5.1 Final Model Ranking
@@ -574,46 +502,7 @@ automatically improve forecasting performance. Brent crude oil prices are highly
 persistent, and a 30-business-day-ahead persistence forecast was difficult to
 beat during the selected test period.
 
-### 5.2 Directional Accuracy
-
-![Figure 15. Directional accuracy by model.](question2_report_assets/task5_directional_accuracy.png)
-
-_Figure 15. Directional accuracy by model._
-
-Directional accuracy was approximately 50% for all models:
-
-| Model          | Directional Accuracy (%) |
-| -------------- | -----------------------: |
-| LSTM           |                  50.3311 |
-| XGBoost        |                  50.3311 |
-| SARIMAX        |                  50.0662 |
-| Naive Baseline |                  50.0662 |
-
-This means that none of the models reliably predicted whether Brent prices would
-rise or fall. Therefore, the price forecasts may be useful for approximate level
-estimation, but they should not be treated as strong trading direction signals.
-
-### 5.3 Error Behaviour and Volatility
-
-Price forecasting errors were compared with GARCH forecast volatility.
-
-| Model          | Correlation: Volatility vs Absolute Error |
-| -------------- | ----------------------------------------: |
-| LSTM           |                                    0.0553 |
-| SARIMAX        |                                   -0.2793 |
-| Naive Baseline |                                   -0.2802 |
-| XGBoost        |                                   -0.4229 |
-
-![Figure 16. Naive baseline forecast error vs GARCH forecast volatility.](question2_report_assets/task5_volatility_vs_best_error.png)
-
-_Figure 16. Naive baseline forecast error vs GARCH forecast volatility._
-
-The graph shows that volatility forecasts do not fully explain the best model's
-price errors. Some large price errors occur without equally large GARCH
-volatility forecasts. This highlights an important limitation: price-level
-forecasting and volatility forecasting are related but separate tasks.
-
-### 5.4 Model-Level Interpretation
+### 5.2 Model-Level Interpretation
 
 **Naive Baseline:** The best-performing price model was the simplest. This does
 not mean that the market is easy to forecast; it means that Brent prices were
@@ -632,21 +521,22 @@ not enough to capture the market shocks and turning points in 2022-2025.
 **LSTM:** LSTM performed better than XGBoost but worse than the Naive and
 SARIMAX models. The actual-vs-predicted chart shows that LSTM produced smoother
 forecasts, which helped reduce noise but also caused it to miss sharper turning
-points.
+points. This behaviour is consistent with the course sequence-modelling
+workflow: scaling, lookback-window construction, validation tuning, and
+early-stopping reduce instability, but they do not guarantee better turning
+point detection in a shock-driven commodity series.
 
 **GARCH:** GARCH was useful for volatility rather than price level. The
-Student-t GARCH(1,1) model captured volatility clustering well, and diagnostics
-showed that most ARCH effects were removed. However, its forecast-volatility
-correlation with actual fluctuations was weak, so it should be used as a risk
-indicator rather than a complete forecasting solution.
+Student-t GARCH(1,1) model captured volatility clustering and showed very high
+volatility persistence. It should therefore be used as a risk indicator rather
+than a complete price-forecasting solution.
 
-### 5.5 Practical Use, Limitations, and Future Improvements
+### 5.3 Practical Use, Limitations, and Future Improvements
 
 The price forecasts are most useful as short-term level benchmarks rather than
 trading signals. The Naive and SARIMAX results show that price persistence is
-strong, but the directional accuracy results show that the models do not
-reliably predict whether prices will rise or fall. This limits their standalone
-use for speculative decisions.
+strong, but the models still lag turning points during market regime changes.
+This limits their standalone use for speculative decisions.
 
 The volatility model is more useful for risk monitoring. The GARCH forecast can
 help identify whether expected daily volatility is rising or falling, which is
@@ -662,6 +552,11 @@ interest rates, equity volatility, refinery activity, macroeconomic indicators,
 and geopolitical risk measures. Model evaluation should also be repeated across
 rolling test windows to check whether conclusions remain stable across different
 market regimes.
+
+The added ACF/PACF notebook cells should be used as final methodological checks
+before submission. They do not change the dataset or the core model set, but
+they make the SARIMAX order selection more transparent and more closely aligned
+with the ML 25 teaching material.
 
 The forecasts should also be used responsibly. Brent price and volatility
 forecasts can influence trading, hedging, budgeting, and policy decisions, so
@@ -686,10 +581,7 @@ did not automatically outperform simple baselines.
 
 For volatility modelling, the **GARCH(1,1)-StudentT** model was selected. It
 captured volatility clustering effectively, with alpha + beta equal to
-**0.9934**, indicating very persistent volatility. From the dataset endpoint of
-**2025-12-31**, the 30-business-day volatility forecast rose from **1.4637%** to
-**1.7704%**, suggesting a modest increase in expected risk over **2026-01-01 to
-2026-02-11**.
+**0.9934**, indicating very persistent volatility shocks.
 
 The final recommendation is to use the Naive or SARIMAX model as a transparent
 benchmark for short-term Brent price levels and the GARCH model as a separate
