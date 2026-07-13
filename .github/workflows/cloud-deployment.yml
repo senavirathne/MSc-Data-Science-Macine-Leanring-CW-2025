@@ -1,4 +1,4 @@
-name: Cloud deployment CI/CD
+name: Cloud Deployment CI/CD
 
 on:
   pull_request:
@@ -33,8 +33,11 @@ env:
   DEPLOYMENT_DIRECTORY: cloud-deployment
 
 jobs:
+  # ==========================================================
+  # Job 1: Test FastAPI application
+  # ==========================================================
   test:
-    name: Test FastAPI application
+    name: Test FastAPI Application
     runs-on: ubuntu-latest
 
     defaults:
@@ -46,7 +49,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
@@ -59,25 +62,38 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
-      - name: Verify deployment files
+      - name: Verify project files
         run: |
+          echo "Current directory:"
           pwd
+
+          echo "Deployment files:"
           find . -maxdepth 3 -type f | sort
+
+      - name: Compile application
+        run: python -m compileall app
 
       - name: Verify application import
         env:
           PYTHONPATH: .
-        run: python -c "from app.main import app; print(app.title)"
+        run: |
+          python -c "from app.main import app; print('Loaded application:', app.title)"
 
       - name: Run automated tests
         env:
           PYTHONPATH: .
         run: python -m pytest tests -v
+
+  # ==========================================================
+  # Job 2: Build and deploy to Cloud Run
+  # ==========================================================
   build-and-deploy:
-    name: Build and deploy Cloud Run
+    name: Build and Deploy Cloud Run
     runs-on: ubuntu-latest
     needs: test
 
+    # Pull requests run tests only.
+    # Deployment occurs for pushes to main or manual runs.
     if: >
       github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch'
@@ -86,7 +102,23 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Define container image
+        run: |
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${SERVICE}:${GITHUB_SHA}"
+
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+          echo "Container image: $IMAGE"
+
+      # Build before authentication so temporary Google credentials
+      # are not included in the Docker build context.
+      - name: Build container image
+        run: |
+          docker build \
+            --tag "$IMAGE" \
+            "$DEPLOYMENT_DIRECTORY"
+
       - name: Authenticate to Google Cloud
+        id: gcp-auth
         uses: google-github-actions/auth@v3
         with:
           project_id: ${{ vars.GCP_PROJECT_ID }}
@@ -95,23 +127,20 @@ jobs:
 
       - name: Set up Google Cloud CLI
         uses: google-github-actions/setup-gcloud@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - name: Verify Google Cloud authentication
+        run: |
+          gcloud auth list
+          gcloud config set project "$PROJECT_ID"
+          gcloud config list project
 
       - name: Configure Artifact Registry authentication
         run: |
           gcloud auth configure-docker \
             "${REGION}-docker.pkg.dev" \
             --quiet
-
-      - name: Define container image
-        run: |
-          IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${SERVICE}:${GITHUB_SHA}"
-          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
-
-      - name: Build container image
-        run: |
-          docker build \
-            --tag "$IMAGE" \
-            "$DEPLOYMENT_DIRECTORY"
 
       - name: Push container image
         run: docker push "$IMAGE"
@@ -130,36 +159,99 @@ jobs:
             --no-allow-unauthenticated \
             --quiet
 
-      - name: Read service URL
+      - name: Read Cloud Run service information
+        id: cloud-run-service
         run: |
           SERVICE_URL=$(gcloud run services describe "$SERVICE" \
             --project="$PROJECT_ID" \
             --region="$REGION" \
             --format="value(status.url)")
 
-          test -n "$SERVICE_URL"
-          echo "SERVICE_URL=$SERVICE_URL" >> "$GITHUB_ENV"
+          REVISION=$(gcloud run services describe "$SERVICE" \
+            --project="$PROJECT_ID" \
+            --region="$REGION" \
+            --format="value(status.latestReadyRevisionName)")
+
+          if [ -z "$SERVICE_URL" ]; then
+            echo "Cloud Run service URL was not found."
+            exit 1
+          fi
+
+          echo "service_url=$SERVICE_URL" >> "$GITHUB_OUTPUT"
+          echo "revision=$REVISION" >> "$GITHUB_OUTPUT"
+
+          echo "Service URL: $SERVICE_URL"
+          echo "Revision: $REVISION"
+
+      # Generate the Cloud Run ID token directly through the
+      # Google authentication action. Do not use:
+      # gcloud auth print-identity-token
+      - name: Generate Cloud Run identity token
+        id: cloud-run-auth
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SERVICE_ACCOUNT }}
+          token_format: id_token
+          id_token_audience: ${{ steps.cloud-run-service.outputs.service_url }}
+          id_token_include_email: true
 
       - name: Check health endpoint
+        env:
+          SERVICE_URL: ${{ steps.cloud-run-service.outputs.service_url }}
+          ID_TOKEN: ${{ steps.cloud-run-auth.outputs.id_token }}
         run: |
-          TOKEN=$(gcloud auth print-identity-token)
+          echo "Testing: ${SERVICE_URL}/health"
 
-          curl \
+          RESPONSE=$(curl \
             --fail \
             --show-error \
             --silent \
             --retry 6 \
             --retry-delay 5 \
-            -H "Authorization: Bearer $TOKEN" \
-            "${SERVICE_URL}/health"
+            --header "Authorization: Bearer ${ID_TOKEN}" \
+            "${SERVICE_URL}/health")
+
+          echo "$RESPONSE"
+
+          echo "$RESPONSE" | python -m json.tool
 
       - name: Check model-info endpoint
+        env:
+          SERVICE_URL: ${{ steps.cloud-run-service.outputs.service_url }}
+          ID_TOKEN: ${{ steps.cloud-run-auth.outputs.id_token }}
         run: |
-          TOKEN=$(gcloud auth print-identity-token)
+          echo "Testing: ${SERVICE_URL}/model-info"
 
-          curl \
+          RESPONSE=$(curl \
             --fail \
             --show-error \
             --silent \
-            -H "Authorization: Bearer $TOKEN" \
-            "${SERVICE_URL}/model-info"
+            --header "Authorization: Bearer ${ID_TOKEN}" \
+            "${SERVICE_URL}/model-info")
+
+          echo "$RESPONSE"
+
+          echo "$RESPONSE" | python -m json.tool
+
+      - name: Write deployment summary
+        env:
+          SERVICE_URL: ${{ steps.cloud-run-service.outputs.service_url }}
+          REVISION: ${{ steps.cloud-run-service.outputs.revision }}
+        run: |
+          {
+            echo "## Cloud Run Deployment"
+            echo ""
+            echo "| Item | Value |"
+            echo "|---|---|"
+            echo "| Project | \`${PROJECT_ID}\` |"
+            echo "| Region | \`${REGION}\` |"
+            echo "| Service | \`${SERVICE}\` |"
+            echo "| Revision | \`${REVISION}\` |"
+            echo "| Image | \`${IMAGE}\` |"
+            echo "| Service URL | \`${SERVICE_URL}\` |"
+            echo "| Authentication | IAM protected |"
+            echo "| Health check | Passed |"
+            echo "| Model-info check | Passed |"
+          } >> "$GITHUB_STEP_SUMMARY"
