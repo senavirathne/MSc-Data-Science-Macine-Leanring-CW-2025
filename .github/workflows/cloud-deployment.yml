@@ -59,12 +59,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
-      - name: Compile application
-        run: python -m compileall app
+      - name: Verify deployment files
+        run: |
+          pwd
+          find . -maxdepth 3 -type f | sort
+
+      - name: Verify application import
+        env:
+          PYTHONPATH: .
+        run: python -c "from app.main import app; print(app.title)"
 
       - name: Run automated tests
-        run: pytest -v
-
+        env:
+          PYTHONPATH: .
+        run: python -m pytest tests -v
   build-and-deploy:
     name: Build and deploy Cloud Run
     runs-on: ubuntu-latest
