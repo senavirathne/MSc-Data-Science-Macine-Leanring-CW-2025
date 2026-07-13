@@ -10,7 +10,11 @@ def test_health() -> None:
     response = client.get("/health")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["model_version"] == "v1"
+    assert "timestamp" in body
 
 
 def test_model_info() -> None:
@@ -20,6 +24,7 @@ def test_model_info() -> None:
 
     body = response.json()
     assert body["model_name"] == "student-burnout-risk-classifier"
+    assert body["model_version"] == "v1"
     assert body["target"] == "Burnout_Risk_Level"
     assert body["problem_type"] == "multiclass_classification"
     assert set(body["classes"]) == {"High", "Medium", "Low"}
@@ -27,27 +32,25 @@ def test_model_info() -> None:
     assert "timestamp" in body
 
 
-def test_predict_rejects_missing_features() -> None:
+def test_predict_rejects_empty_features() -> None:
     response = client.post(
         "/predict",
         json={"features": {}},
     )
 
-    assert response.status_code == 200
+    assert response.status_code == 422
 
     body = response.json()
-    assert body["error"] == "Missing required features"
-    assert len(body["missing"]) > 0
+    assert "detail" in body
 
 
-def test_batch_predict_rejects_missing_features() -> None:
+def test_batch_predict_rejects_empty_record() -> None:
     response = client.post(
         "/batch-predict",
         json={"records": [{}]},
     )
 
-    assert response.status_code == 200
+    assert response.status_code == 422
 
     body = response.json()
-    assert body["error"] == "Missing required features"
-    assert len(body["missing"]) > 0
+    assert "detail" in body
