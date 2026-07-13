@@ -1,0 +1,12 @@
+.git
+.github
+tests
+__pycache__
+*.pyc
+.pytest_cache
+.venv
+.env
+*.log
+predict_request.json
+batch_request.json
+service-account-key.json

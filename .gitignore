@@ -8,6 +8,10 @@
 !Question 1 Report.md
 !Question 2 Report.md
 !Question 3 Report.md
+!cloud-deployment/
+!cloud-deployment/**
+!.github/
+!.github/**
 
 # Allow the task2_outputs directory and its contents
 !task2_outputs/
