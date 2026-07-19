@@ -19,7 +19,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 concurrency:
   group: cloud-run-production
@@ -30,6 +29,9 @@ env:
   REGION: ${{ vars.GCP_REGION }}
   REPOSITORY: ${{ vars.GCP_ARTIFACT_REPOSITORY }}
   SERVICE: ${{ vars.CLOUD_RUN_SERVICE }}
+  WIF_PROVIDER: ${{ vars.GCP_WIF_PROVIDER }}
+  DEPLOYER_SERVICE_ACCOUNT: ${{ vars.GCP_DEPLOYER_SERVICE_ACCOUNT }}
+  RUNTIME_SERVICE_ACCOUNT: ${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}
   DEPLOYMENT_DIRECTORY: cloud-deployment
 
 jobs:
@@ -157,12 +159,15 @@ jobs:
     name: Build and Deploy Cloud Run
     runs-on: ubuntu-latest
     needs: test
+    permissions:
+      contents: read
+      id-token: write
 
     # Pull requests run tests only.
-    # Deployment occurs for pushes to main and manual runs.
+    # Deployment occurs only from main, for pushes and manual runs.
     if: >
-      github.event_name == 'push' ||
-      github.event_name == 'workflow_dispatch'
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
 
     steps:
       - name: Check out repository
@@ -175,6 +180,9 @@ jobs:
             "REGION"
             "REPOSITORY"
             "SERVICE"
+            "WIF_PROVIDER"
+            "DEPLOYER_SERVICE_ACCOUNT"
+            "RUNTIME_SERVICE_ACCOUNT"
           )
 
           for variable_name in "${required_variables[@]}"; do
@@ -183,6 +191,11 @@ jobs:
               exit 1
             fi
           done
+
+          if [ "$SERVICE" != "q1-success-api" ]; then
+            echo "::error::CLOUD_RUN_SERVICE must be q1-success-api, received: $SERVICE"
+            exit 1
+          fi
 
           echo "Project: $PROJECT_ID"
           echo "Region: $REGION"
@@ -209,8 +222,8 @@ jobs:
         uses: google-github-actions/auth@v3
         with:
           project_id: ${{ vars.GCP_PROJECT_ID }}
-          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
-          service_account: ${{ vars.GCP_DEPLOYER_SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOYER_SERVICE_ACCOUNT }}
 
       - name: Set up Google Cloud CLI
         uses: google-github-actions/setup-gcloud@v3
@@ -252,12 +265,14 @@ jobs:
             --project="$PROJECT_ID" \
             --region="$REGION" \
             --image="$IMAGE" \
-            --service-account="${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}" \
+            --service-account="$RUNTIME_SERVICE_ACCOUNT" \
             --memory="1Gi" \
             --cpu="1" \
             --min-instances="0" \
             --max-instances="3" \
-            --no-allow-unauthenticated \
+            --set-env-vars="MAX_REQUEST_BYTES=65536,PREDICT_RATE_LIMIT=60,RATE_LIMIT_WINDOW_SECONDS=60" \
+            --ingress="all" \
+            --allow-unauthenticated \
             --quiet
 
       - name: Read Cloud Run service information
@@ -303,23 +318,9 @@ jobs:
           echo "Traffic revision: $TRAFFIC_REVISION"
           echo "Traffic percentage: $TRAFFIC_PERCENT"
 
-      # Generate an ID token for the private Cloud Run service.
-      # The token audience must exactly match the Cloud Run service URL.
-      - name: Generate Cloud Run identity token
-        id: cloud-run-auth
-        uses: google-github-actions/auth@v3
-        with:
-          project_id: ${{ vars.GCP_PROJECT_ID }}
-          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
-          service_account: ${{ vars.GCP_DEPLOYER_SERVICE_ACCOUNT }}
-          token_format: id_token
-          id_token_audience: ${{ steps.cloud-run-service.outputs.service_url }}
-          id_token_include_email: true
-
       - name: Check health endpoint
         env:
           SERVICE_URL: ${{ steps.cloud-run-service.outputs.service_url }}
-          ID_TOKEN: ${{ steps.cloud-run-auth.outputs.id_token }}
         run: |
           echo "Testing: ${SERVICE_URL}/health"
 
@@ -330,7 +331,6 @@ jobs:
             --retry 6 \
             --retry-delay 5 \
             --retry-all-errors \
-            --header "Authorization: Bearer ${ID_TOKEN}" \
             "${SERVICE_URL}/health")
 
           echo "$RESPONSE"
@@ -339,7 +339,6 @@ jobs:
       - name: Check model-info endpoint
         env:
           SERVICE_URL: ${{ steps.cloud-run-service.outputs.service_url }}
-          ID_TOKEN: ${{ steps.cloud-run-auth.outputs.id_token }}
         run: |
           echo "Testing: ${SERVICE_URL}/model-info"
 
@@ -350,7 +349,6 @@ jobs:
             --retry 6 \
             --retry-delay 5 \
             --retry-all-errors \
-            --header "Authorization: Bearer ${ID_TOKEN}" \
             "${SERVICE_URL}/model-info")
 
           echo "$RESPONSE"
@@ -427,7 +425,7 @@ jobs:
             echo "| Revision | \`${REVISION}\` |"
             echo "| Image | \`${IMAGE}\` |"
             echo "| Service URL | \`${SERVICE_URL}\` |"
-            echo "| Authentication | IAM protected |"
+            echo "| Invocation | Public HTTPS |"
             echo "| Health check | Passed |"
             echo "| Model-info check | Passed |"
             echo "| Expected model version | \`q1-v1\` |"

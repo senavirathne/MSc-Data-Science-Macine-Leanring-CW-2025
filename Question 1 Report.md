@@ -6,7 +6,7 @@ This study evaluates whether responses from a large international survey of high
 
 The analysis used leakage-controlled preprocessing, four questionnaire-based composite features, ANOVA percentile feature selection, five-fold stratified cross-validation and randomized hyperparameter search. Logistic Regression, K-Nearest Neighbours, Random Forest, Histogram Gradient Boosting and a multilayer perceptron were compared using positive-class F1 as the selection criterion. Logistic Regression achieved the highest cross-validated F1 (0.6011 ± 0.0107) and was selected before test evaluation. On the locked test set it achieved accuracy 0.6546, precision 0.5277, recall 0.6429, F1 0.5796, ROC-AUC 0.7124 and PR-AUC 0.5862. Histogram Gradient Boosting provided stronger overall discrimination but substantially lower positive-class recall.
 
-Permutation importance identified confidence about obtaining a job after study, first-year Bachelor's status and emotion balance as the most influential original inputs. The explanation is associative rather than causal. Gender gaps were comparatively small among supported groups, whereas age and survey-language gaps were substantial. These results, the subjective contemporaneous outcome, target nonresponse and convenience sampling preclude operational use. A serialized FastAPI/Docker package was generated and smoke-tested, and a governed Google Cloud deployment and MLOps design was successfully implemented and provisioned.
+Permutation importance identified confidence about obtaining a job after study, first-year Bachelor's status and emotion balance as the most influential original inputs. The explanation is associative rather than causal. Gender gaps were comparatively small among supported groups, whereas age and survey-language gaps were substantial. These results, the subjective contemporaneous outcome, target nonresponse and convenience sampling preclude operational use. A serialized FastAPI/Docker package was deployed to Google Cloud Run, and the updated GitHub Actions workflow is configured for public HTTPS inference. The updated application rejects request bodies above 65,536 bytes and applies a 60-request-per-60-second prediction limit within each application instance. Batch processing, staged promotion, load testing, cross-instance edge rate limiting and model-drift automation remain future extensions.
 
 
 ## 1. Introduction
@@ -222,7 +222,7 @@ Age performance varied more strongly. TPR declined from 0.7093 for ages 18–21 
 
 These are descriptive point estimates without confidence intervals. Gaps may reflect convenience sampling, country composition, translation, survey interpretation, response styles and true construct differences as well as model behaviour. They are not proof of discrimination or fairness. Nevertheless, the age and language differences are large enough to block operational use until representative external validation, translation and measurement review, uncertainty estimation and subgroup-specific error investigation have been completed.
 
-## 4. Deployment and MLOps Design
+## 4. Deployment and MLOps Implementation
 
 ### 4.1 Validated model package
 
@@ -231,42 +231,47 @@ The notebook generated a self-contained package with:
 - `model.joblib`: complete preprocessing, feature selection and Logistic Regression pipeline;
 - `feature_schema.json`: accepted raw fields, ranges, feature order and composite rules;
 - `metadata.json`: model version, data checksum, class labels, threshold, metrics and limitations;
-- `app.py`: FastAPI application with `/health`, `/model-info` and `/predict`;
+- `app.py`: FastAPI application with `/health`, `/model-info` and `/predict`, request-body size enforcement and per-instance prediction rate limiting;
 - `requirements.txt`, `Dockerfile` and `api_contract.json`.
 
-The application source compiled, the serialized model reproduced the in-memory probabilities, and a raw questionnaire record passed validation and recreated all four engineered features. Its prepared model row and prediction matched the notebook pipeline. These are meaningful smoke tests, but the Docker image was not built, HTTP endpoints were not exercised and no cloud resource was deployed.
+The application source compiled, the serialized model reproduced the in-memory probabilities, and a raw questionnaire record passed validation and recreated all four engineered features. Its prepared model row and prediction matched the notebook pipeline. The current deployment suite contains 27 tests covering package integrity, schema consistency, model reload parity, composite reconstruction, input validation, metadata, successful prediction, request-size enforcement and rate-limit behaviour.
 
-### 4.2 Proposed Google Cloud architecture
+The previously verified deployment, commit `640da54`, triggered [GitHub Actions run 29687702433](https://github.com/senavirathne/MSc-Data-Science-Macine-Leanring-CW-2025/actions/runs/29687702433). Both jobs completed successfully: the first recreated the Python 3.12 environment and ran the automated tests; the second built the Docker image, pushed it to Artifact Registry and deployed the `q1-success-api` service to Cloud Run. Authenticated post-deployment requests to `/health` and `/model-info` passed, the returned metadata identified model version `q1-v1`, target `lower_or_uncertain_self_perceived_success` and Logistic Regression, and the workflow verified that the latest ready revision received 100% of traffic. The current workflow revision is configured to change invocation to public HTTPS and to test the deployed informational endpoints without an identity token.
+
+### 4.2 Implemented Google Cloud deployment and planned extensions
 
 ```mermaid
 flowchart LR
-    A[Versioned survey inputs<br/>Cloud Storage] --> B[Schema validation and<br/>feature construction]
-    B --> C[Private FastAPI service<br/>Cloud Run]
-    B --> D[Scheduled batch scoring<br/>Cloud Run Job]
-    C --> E[Probability, class<br/>and model version]
-    D --> F[Pseudonymous batch outputs<br/>BigQuery]
-    G[Cloud Build] --> H[Artifact Registry]
-    H --> C
-    H --> D
-    I[Vertex AI Experiments<br/>and Model Registry] --> C
-    C --> J[Cloud Logging and Monitoring]
-    D --> J
+    G[GitHub Actions<br/>tests and container build] --> H[Artifact Registry<br/>commit-tagged image]
+    H --> C[Cloud Run: q1-success-api<br/>public invocation configured<br/>FastAPI with 64 KiB body limit<br/>and per-instance rate limit]
+    A[HTTPS raw<br/>questionnaire request] --> C
+    C --> E[Class, positive-class probability<br/>and model version]
+    C --> J[Cloud Run request and<br/>container logs]
+
+    K[Versioned batch inputs<br/>Cloud Storage] -. planned .-> D[Cloud Run Job]
+    D -. planned .-> F[Pseudonymous outputs<br/>BigQuery]
+    I[Vertex AI experiment tracking<br/>and model registry] -. planned .-> C
+
+    classDef planned fill:#f6f6f6,stroke:#777,stroke-dasharray: 5 5;
+    class K,D,F,I planned;
 ```
 
-Real-time requests use an authenticated `POST /predict` call to a private Cloud Run service. The request is validated against the schema, the same four composites are reconstructed, and the response returns the class label, positive-class probability and model version. Scheduled cohort scoring uses a Cloud Run Job over versioned Cloud Storage inputs and writes pseudonymous outputs to governed BigQuery tables. Batch inference is a job design, not an implemented `/batch-predict` endpoint.
+The updated application and workflow configure real-time inference as a public HTTPS `POST /predict` call to the `q1-success-api` Cloud Run service. Before route processing, pure ASGI middleware rejects request bodies above 65,536 bytes. A sliding-window control admits 60 prediction requests per 60 seconds within each application instance and returns HTTP 429 with `Retry-After` when that limit is exceeded. The application then validates recognised raw Q6–Q34 fields, enforces documented value ranges and minimum coverage, reconstructs the same four composites used in training, and returns the class label, positive-class probability and model version. The service is configured with one CPU, 1 GiB memory, zero minimum instances and a maximum of three instances.
 
-Cloud Run is appropriate for intermittent traffic because it provides managed autoscaling and scale-to-zero without cluster administration. Artifact Registry stores immutable container images. Vertex AI Experiments records folds, search configurations and metrics; Vertex AI Model Registry provides lineage, approval status, aliases and rollback targets.
+Cloud Run is appropriate for intermittent coursework traffic because it provides managed autoscaling and scale-to-zero without cluster administration. Artifact Registry stores an image tagged with the source commit, while Cloud Run resolves the deployed revision to an image digest. Scheduled cohort scoring through a Cloud Run Job, versioned Cloud Storage inputs, governed BigQuery outputs, Vertex AI experiment tracking and a model registry remain proposed extensions. Batch inference is therefore not presented as an implemented `/batch-predict` endpoint.
 
-### 4.3 Automation, monitoring and governance
+### 4.3 CI/CD, monitoring and governance
 
-The proposed delivery workflow is:
+The current delivery workflow is configured as follows:
 
-1. A versioned source change triggers Cloud Build.
-2. Tests check schema rules, composite construction, pipeline reload, deterministic predictions and API contracts.
-3. A container is built and scanned, then stored in Artifact Registry.
-4. A new private Cloud Run revision is deployed with no immediate traffic.
-5. Health, schema and prediction smoke tests run against the revision.
-6. Human approval promotes traffic gradually; a failed gate restores the previous revision.
+1. A change to the deployment package or workflow on `main` triggers GitHub Actions; pull requests execute the test job without deployment.
+2. CI installs the pinned Python 3.12 runtime, validates required files and JSON metadata, compiles and imports the application, and executes 27 automated tests.
+3. A Docker image is built and tagged with the immutable Git commit identifier, then authenticated to Google Cloud through Workload Identity Federation and pushed to Artifact Registry.
+4. The workflow deploys a publicly invocable Cloud Run revision with unrestricted internet ingress, the configured runtime service account, scale-to-zero settings and explicit application-protection environment variables.
+5. It sends unauthenticated requests to the deployed `/health` and `/model-info` endpoints.
+6. It verifies the expected Q1 model metadata and confirms that the latest ready revision receives 100% of service traffic.
+
+The present workflow promotes a successful revision directly to 100% traffic. Container vulnerability scanning, a no-traffic candidate revision, a live post-deployment `/predict` request, human approval, gradual traffic migration and automated rollback are not currently implemented. They would be appropriate controls before any use beyond this coursework proof of concept.
 
 Operational monitoring should combine service and model signals:
 
@@ -276,9 +281,9 @@ Operational monitoring should combine service and model signals:
 - delayed accuracy, recall, F1, PR-AUC, calibration and subgroup gaps when trustworthy outcomes become available;
 - logging of model version and pseudonymous request identifiers without raw survey payloads.
 
-Alert policies should notify the responsible service and model owners when technical error rates, latency, schema failures or drift exceed approved limits. Retraining may run termly or after a confirmed drift event through a Vertex AI Pipeline. New data must pass quality and representativeness checks, training-only cross-validation, locked evaluation, fairness gates and human review before registry promotion. An automated schedule should never bypass these gates.
+The deployed Cloud Run service provides platform request and container logs, but the model-monitoring signals above, alert policies and load tests have not been configured. A future production-oriented implementation should notify responsible owners when technical error rates, latency, schema failures or drift exceed approved limits. Retraining may run termly or after a confirmed drift event through a Vertex AI Pipeline. New data must pass quality and representativeness checks, training-only cross-validation, locked evaluation, fairness gates and human review before registry promotion. An automated schedule should never bypass these gates.
 
-Security controls include least-privilege IAM, dedicated service accounts, private ingress, Secret Manager, encryption in transit and at rest, audit logging and explicit retention limits. Direct identifiers, institution and free text are unnecessary for inference and should not be collected. Access to batch outputs should be role-based, and any future participant-facing process should be voluntary, transparent, human reviewed and open to challenge.
+Deployment authentication uses Workload Identity Federation instead of a stored Google service-account key, while the container runs under a configured Cloud Run service account and TLS protects service traffic. The updated workflow deliberately configures public invocation for this coursework API. The application limits request bodies to 65,536 bytes and uses a shared in-memory prediction quota within each instance. This quota limits work accepted by one instance; it is not a per-client control, resets with the instance and is not coordinated across autoscaled instances. A future external HTTPS load balancer and Cloud Armor policy, combined with restricted direct Cloud Run ingress, would provide stronger shared edge enforcement. Direct identifiers, institution and free text are excluded from the inference schema and should not be collected. Least-privilege role review, explicit log-retention limits, alerting, audit review and role-based access to any future batch outputs remain governance requirements. Any participant-facing process should be voluntary, transparent, human reviewed and open to challenge.
 
 ## 5. Discussion
 
@@ -303,7 +308,7 @@ Several limitations define the interpretation:
 7. **Resource-conscious tuning.** Six randomized candidates per family support a fair executable comparison but do not establish globally optimal hyperparameters.
 8. **Subgroup uncertainty.** Several groups were suppressed, and confidence intervals were not estimated for reported fairness metrics.
 9. **No external validation.** Cultural, temporal, institutional and translation transfer remain untested.
-10. **Deployment evidence is limited.** Package-level smoke tests passed, but the container, HTTP service and GCP architecture were not deployed or load-tested.
+10. **Cloud validation remains limited.** The previously recorded run verified CI tests, the Docker build, Artifact Registry push, Cloud Run deployment, authenticated health and metadata checks, and latest-revision traffic assignment. The current public-access, request-size and rate-limit revision passed locally in the 27-test suite and is configured to run through the same suite in CI, but it requires a new successful deployment run for equivalent cloud evidence. The post-deployment job does not exercise `/predict`, and no staged rollout, load test, prolonged availability study, drift monitoring or external security assessment was performed.
 
 Future research should define a prospective prediction time, use a shorter voluntary instrument, collect a meaningful later outcome, examine target nonresponse, validate translations and measurement invariance, estimate subgroup uncertainty, assess probability calibration and conduct external validation before considering a support workflow.
 
@@ -311,7 +316,7 @@ Future research should define a prospective prediction time, use a shorter volun
 
 A leakage-controlled comparison of five supervised-learning families was completed on 17,426 labelled responses from a large global higher-education survey. Logistic Regression was selected by training cross-validation and achieved test F1 0.5796, recall 0.6429, ROC-AUC 0.7124 and PR-AUC 0.5862 for lower or uncertain self-perceived success. Boosting ranked respondents more effectively overall but identified fewer positive cases at the default threshold.
 
-The strongest fitted dependencies involved employment confidence, study stage and emotion balance, but they remain associative. Small supported gender gaps coexist with substantial age and language gaps, modest predictive performance and high-confidence errors. The correct conclusion is therefore methodological rather than operational: the pipeline is reproducible and technically packageable, but the current survey-based model is not suitable for deployment. A prospective outcome, representative external validation, fairness investigation and human governance are prerequisites for any future use.
+The strongest fitted dependencies involved employment confidence, study stage and emotion balance, but they remain associative. Small supported gender gaps coexist with substantial age and language gaps, modest predictive performance and high-confidence errors. The pipeline is reproducible and packaged for public Cloud Run deployment with application-level request controls; the earlier IAM-protected revision establishes technical deployability, while the updated public revision still requires successful deployment verification. This does not establish suitability for operational academic decision-making. A prospective outcome, representative external validation, fairness investigation and human governance are prerequisites for any future use beyond technical demonstration.
 
 ## References
 

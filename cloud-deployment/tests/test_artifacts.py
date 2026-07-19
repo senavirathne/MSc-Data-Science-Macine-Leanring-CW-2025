@@ -4,7 +4,13 @@ from pathlib import Path
 import joblib
 import numpy as np
 
-from app import model, prepare_api_records
+from app import (
+    MAX_REQUEST_BYTES,
+    PREDICT_RATE_LIMIT,
+    RATE_LIMIT_WINDOW_SECONDS,
+    model,
+    prepare_api_records,
+)
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
@@ -65,3 +71,8 @@ def test_api_contract_matches_implemented_routes() -> None:
     contract = json.loads((PROJECT_DIR / "api_contract.json").read_text(encoding="utf-8"))
 
     assert {"GET /health", "GET /model-info", "POST /predict"} <= set(contract)
+    protections = contract["Application protections"]
+    assert protections["maximum_request_body_bytes"] == MAX_REQUEST_BYTES
+    assert protections["predict_rate_limit"] == PREDICT_RATE_LIMIT
+    assert protections["rate_limit_window_seconds"] == RATE_LIMIT_WINDOW_SECONDS
+    assert protections["rate_limit_scope"].startswith("Per application instance")
