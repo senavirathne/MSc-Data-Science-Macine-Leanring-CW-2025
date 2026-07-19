@@ -34,7 +34,7 @@ env:
 
 jobs:
   # ==========================================================
-  # Job 1: Test FastAPI application
+  # Job 1: Test the FastAPI application
   # ==========================================================
   test:
     name: Test FastAPI Application
@@ -51,7 +51,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: pip
           cache-dependency-path: |
             cloud-deployment/requirements.txt
@@ -60,9 +60,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
+          python -m pip install -r requirements-dev.txt
 
-      - name: Verify project files
+      - name: Verify deployment package
         run: |
           echo "Current directory:"
           pwd
@@ -70,14 +70,80 @@ jobs:
           echo "Deployment files:"
           find . -maxdepth 3 -type f | sort
 
+          required_files=(
+            "app.py"
+            "model.joblib"
+            "metadata.json"
+            "feature_schema.json"
+            "api_contract.json"
+            "requirements.txt"
+            "requirements-dev.txt"
+            "Dockerfile"
+          )
+
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "::error::Required deployment file is missing: $file"
+              exit 1
+            fi
+          done
+
+          if [ ! -d "tests" ]; then
+            echo "::error::Required tests directory is missing."
+            exit 1
+          fi
+
+          if [ -e "label_encoder.joblib" ]; then
+            echo "::error::label_encoder.joblib must not be included in the new binary model package."
+            exit 1
+          fi
+
+          if [ -d "app" ]; then
+            echo "::error::The old app/ directory is still present."
+            exit 1
+          fi
+
+          if [ -d "model_package" ]; then
+            echo "::error::The old model_package/ directory is still present."
+            exit 1
+          fi
+
+          echo "Deployment package structure is valid."
+
       - name: Compile application
-        run: python -m compileall app
+        run: python -m compileall app.py
 
       - name: Verify application import
         env:
           PYTHONPATH: .
         run: |
-          python -c "from app.main import app; print('Loaded application:', app.title)"
+          python -c "from app import app; print('Loaded application:', app.title)"
+
+      - name: Validate model metadata files
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          required_json_files = (
+              "metadata.json",
+              "feature_schema.json",
+              "api_contract.json",
+          )
+
+          for filename in required_json_files:
+              path = Path(filename)
+
+              try:
+                  with path.open("r", encoding="utf-8") as file:
+                      json.load(file)
+              except json.JSONDecodeError as exc:
+                  raise SystemExit(
+                      f"{filename} contains invalid JSON: {exc}"
+                  ) from exc
+
+              print(f"Validated JSON: {filename}")
+          PY
 
       - name: Run automated tests
         env:
@@ -85,7 +151,7 @@ jobs:
         run: python -m pytest tests -v
 
   # ==========================================================
-  # Job 2: Build and deploy to Cloud Run
+  # Job 2: Build and deploy a new Cloud Run revision
   # ==========================================================
   build-and-deploy:
     name: Build and Deploy Cloud Run
@@ -93,7 +159,7 @@ jobs:
     needs: test
 
     # Pull requests run tests only.
-    # Deployment occurs for pushes to main or manual runs.
+    # Deployment occurs for pushes to main and manual runs.
     if: >
       github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch'
@@ -102,6 +168,27 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Validate deployment variables
+        run: |
+          required_variables=(
+            "PROJECT_ID"
+            "REGION"
+            "REPOSITORY"
+            "SERVICE"
+          )
+
+          for variable_name in "${required_variables[@]}"; do
+            if [ -z "${!variable_name}" ]; then
+              echo "::error::Required repository variable is missing: $variable_name"
+              exit 1
+            fi
+          done
+
+          echo "Project: $PROJECT_ID"
+          echo "Region: $REGION"
+          echo "Artifact Registry repository: $REPOSITORY"
+          echo "Cloud Run service: $SERVICE"
+
       - name: Define container image
         run: |
           IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${SERVICE}:${GITHUB_SHA}"
@@ -109,8 +196,8 @@ jobs:
           echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
           echo "Container image: $IMAGE"
 
-      # Build before authentication so temporary Google credentials
-      # are not included in the Docker build context.
+      # Build before Google Cloud authentication so that temporary
+      # credential files cannot be included in the Docker build context.
       - name: Build container image
         run: |
           docker build \
@@ -135,6 +222,20 @@ jobs:
           gcloud auth list
           gcloud config set project "$PROJECT_ID"
           gcloud config list project
+
+      - name: Check existing Cloud Run service
+        run: |
+          if gcloud run services describe "$SERVICE" \
+            --project="$PROJECT_ID" \
+            --region="$REGION" \
+            --quiet > /dev/null 2>&1; then
+
+            echo "Cloud Run service exists."
+            echo "A new revision will be deployed to the existing service."
+          else
+            echo "Cloud Run service does not currently exist."
+            echo "The deployment command will create it."
+          fi
 
       - name: Configure Artifact Registry authentication
         run: |
@@ -172,20 +273,38 @@ jobs:
             --region="$REGION" \
             --format="value(status.latestReadyRevisionName)")
 
+          TRAFFIC_REVISION=$(gcloud run services describe "$SERVICE" \
+            --project="$PROJECT_ID" \
+            --region="$REGION" \
+            --format="value(status.traffic[0].revisionName)")
+
+          TRAFFIC_PERCENT=$(gcloud run services describe "$SERVICE" \
+            --project="$PROJECT_ID" \
+            --region="$REGION" \
+            --format="value(status.traffic[0].percent)")
+
           if [ -z "$SERVICE_URL" ]; then
-            echo "Cloud Run service URL was not found."
+            echo "::error::Cloud Run service URL was not found."
+            exit 1
+          fi
+
+          if [ -z "$REVISION" ]; then
+            echo "::error::Latest ready Cloud Run revision was not found."
             exit 1
           fi
 
           echo "service_url=$SERVICE_URL" >> "$GITHUB_OUTPUT"
           echo "revision=$REVISION" >> "$GITHUB_OUTPUT"
+          echo "traffic_revision=$TRAFFIC_REVISION" >> "$GITHUB_OUTPUT"
+          echo "traffic_percent=$TRAFFIC_PERCENT" >> "$GITHUB_OUTPUT"
 
           echo "Service URL: $SERVICE_URL"
-          echo "Revision: $REVISION"
+          echo "Latest ready revision: $REVISION"
+          echo "Traffic revision: $TRAFFIC_REVISION"
+          echo "Traffic percentage: $TRAFFIC_PERCENT"
 
-      # Generate the Cloud Run ID token directly through the
-      # Google authentication action. Do not use:
-      # gcloud auth print-identity-token
+      # Generate an ID token for the private Cloud Run service.
+      # The token audience must exactly match the Cloud Run service URL.
       - name: Generate Cloud Run identity token
         id: cloud-run-auth
         uses: google-github-actions/auth@v3
@@ -210,11 +329,11 @@ jobs:
             --silent \
             --retry 6 \
             --retry-delay 5 \
+            --retry-all-errors \
             --header "Authorization: Bearer ${ID_TOKEN}" \
             "${SERVICE_URL}/health")
 
           echo "$RESPONSE"
-
           echo "$RESPONSE" | python -m json.tool
 
       - name: Check model-info endpoint
@@ -228,12 +347,69 @@ jobs:
             --fail \
             --show-error \
             --silent \
+            --retry 6 \
+            --retry-delay 5 \
+            --retry-all-errors \
             --header "Authorization: Bearer ${ID_TOKEN}" \
             "${SERVICE_URL}/model-info")
 
           echo "$RESPONSE"
-
           echo "$RESPONSE" | python -m json.tool
+
+          MODEL_INFO="$RESPONSE" python - <<'PY'
+          import json
+          import os
+
+          response = json.loads(os.environ["MODEL_INFO"])
+
+          expected_values = {
+              "model_version": "q1-v1",
+              "target_name": (
+                  "lower_or_uncertain_self_perceived_success"
+              ),
+              "selected_model": "Logistic Regression",
+          }
+
+          errors = []
+
+          for field, expected in expected_values.items():
+              actual = response.get(field)
+
+              if actual != expected:
+                  errors.append(
+                      f"{field}: expected {expected!r}, received {actual!r}"
+                  )
+
+          if errors:
+              raise SystemExit(
+                  "Unexpected /model-info response:\n- "
+                  + "\n- ".join(errors)
+              )
+
+          print("Model metadata matches the expected Q1 deployment.")
+          PY
+
+      - name: Verify latest revision traffic
+        env:
+          LATEST_REVISION: ${{ steps.cloud-run-service.outputs.revision }}
+          TRAFFIC_REVISION: ${{ steps.cloud-run-service.outputs.traffic_revision }}
+          TRAFFIC_PERCENT: ${{ steps.cloud-run-service.outputs.traffic_percent }}
+        run: |
+          echo "Latest ready revision: $LATEST_REVISION"
+          echo "Traffic revision: $TRAFFIC_REVISION"
+          echo "Traffic percentage: $TRAFFIC_PERCENT"
+
+          if [ "$TRAFFIC_REVISION" != "$LATEST_REVISION" ]; then
+            echo "::error::The latest ready revision is not receiving service traffic."
+            exit 1
+          fi
+
+          if [ "$TRAFFIC_PERCENT" != "100" ]; then
+            echo "::error::The latest revision is not receiving 100% traffic."
+            exit 1
+          fi
+
+          echo "The latest revision is receiving 100% traffic."
 
       - name: Write deployment summary
         env:
@@ -254,4 +430,8 @@ jobs:
             echo "| Authentication | IAM protected |"
             echo "| Health check | Passed |"
             echo "| Model-info check | Passed |"
+            echo "| Expected model version | \`q1-v1\` |"
+            echo "| Expected target | \`lower_or_uncertain_self_perceived_success\` |"
+            echo "| Expected model | \`Logistic Regression\` |"
+            echo "| Latest revision traffic | 100% |"
           } >> "$GITHUB_STEP_SUMMARY"

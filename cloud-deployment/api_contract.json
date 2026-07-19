@@ -1,0 +1,6 @@
+{
+  "GET /health": "Service health",
+  "GET /model-info": "Model, data version, metrics and intended use",
+  "POST /predict": "One validated raw questionnaire record for real-time inference",
+  "Batch path": "Cloud Run Job over versioned Cloud Storage inputs"
+}

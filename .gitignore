@@ -12,7 +12,20 @@
 !cloud-deployment/**
 !.github/
 !.github/**
+!question3_generate_assets.py
+
+# Question 3 figures embedded by the report.
+!question3_report_assets/
+question3_report_assets/*
+!question3_report_assets/ga_convergence.svg
+!question3_report_assets/ga_gantt.svg
+!question3_report_assets/mip_gantt.svg
 
 # Allow the task2_outputs directory and its contents
 !task2_outputs/
 !task2_outputs/**
+
+# Keep only the current Question 2 report figures; older generated assets remain ignored.
+!question2_report_assets/
+question2_report_assets/*
+!question2_report_assets/q2_*.png

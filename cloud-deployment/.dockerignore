@@ -6,7 +6,9 @@ __pycache__
 .pytest_cache
 .venv
 .env
+.DS_Store
 *.log
+requirements-dev.txt
 predict_request.json
 batch_request.json
 service-account-key.json

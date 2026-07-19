@@ -1,0 +1,47 @@
+{
+  "model_version": "q1-v1",
+  "dataset_title": "Higher Education Students\u2019 Evolving Perceptions of ChatGPT",
+  "dataset_doi": "10.17632/nv2343nwsb.2",
+  "dataset_version": 2,
+  "dataset_zip_sha256": "5696c4d92ed0b6324721552a71425f38b0d7f3415314e860ad3fb4992122db62",
+  "target_source": "Q35a",
+  "target_name": "lower_or_uncertain_self_perceived_success",
+  "class_labels": {
+    "0": "Higher self-perceived success",
+    "1": "Lower/uncertain self-perceived success"
+  },
+  "positive_class": 1,
+  "selected_model": "Logistic Regression",
+  "selected_hyperparameters": {
+    "selector__percentile": 50,
+    "model__penalty": "l1",
+    "model__class_weight": "balanced",
+    "model__C": 5.0
+  },
+  "selection_metric": "training cross-validated positive-class F1",
+  "cv_folds": 5,
+  "random_state": 42,
+  "decision_threshold": 0.5,
+  "runtime_versions": {
+    "python": "3.12.13",
+    "numpy": "2.0.2",
+    "pandas": "2.2.2",
+    "scikit_learn": "1.6.1",
+    "joblib": "1.5.3"
+  },
+  "test_metrics": {
+    "Accuracy": 0.6546184738955824,
+    "Precision": 0.5276541640178004,
+    "Recall": 0.6429124709527498,
+    "F1": 0.5796089385474861,
+    "ROC_AUC": 0.7124226068330072,
+    "PR_AUC": 0.5862122931015009
+  },
+  "intended_use": "Coursework proof-of-concept associative classification",
+  "limitations": [
+    "Self-perceived rather than objective academic success",
+    "Cross-sectional convenience sample",
+    "Structurally non-random questionnaire missingness",
+    "No causal interpretation or automated academic decision-making"
+  ]
+}

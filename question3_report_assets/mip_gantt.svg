@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1060" height="390" viewBox="0 0 1060 390">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="92" y="28" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#111827">MIP schedule (Optimal), makespan = 55</text>
+<g font-family="Arial, sans-serif">
+<text x="72" y="86" font-size="14" text-anchor="end" fill="#111827">M1</text>
+<line x1="92" y1="99" x2="1026" y2="99" stroke="#e5e7eb"/>
+<text x="72" y="132" font-size="14" text-anchor="end" fill="#111827">M2</text>
+<line x1="92" y1="145" x2="1026" y2="145" stroke="#e5e7eb"/>
+<text x="72" y="178" font-size="14" text-anchor="end" fill="#111827">M3</text>
+<line x1="92" y1="191" x2="1026" y2="191" stroke="#e5e7eb"/>
+<text x="72" y="224" font-size="14" text-anchor="end" fill="#111827">M4</text>
+<line x1="92" y1="237" x2="1026" y2="237" stroke="#e5e7eb"/>
+<text x="72" y="270" font-size="14" text-anchor="end" fill="#111827">M5</text>
+<line x1="92" y1="283" x2="1026" y2="283" stroke="#e5e7eb"/>
+<text x="72" y="316" font-size="14" text-anchor="end" fill="#111827">M6</text>
+<line x1="92" y1="329" x2="1026" y2="329" stroke="#e5e7eb"/>
+<line x1="92.00" y1="48" x2="92.00" y2="342" stroke="#f3f4f6"/>
+<text x="92.00" y="366" font-size="12" text-anchor="middle" fill="#374151">0</text>
+<line x1="176.91" y1="48" x2="176.91" y2="342" stroke="#f3f4f6"/>
+<text x="176.91" y="366" font-size="12" text-anchor="middle" fill="#374151">5</text>
+<line x1="261.82" y1="48" x2="261.82" y2="342" stroke="#f3f4f6"/>
+<text x="261.82" y="366" font-size="12" text-anchor="middle" fill="#374151">10</text>
+<line x1="346.73" y1="48" x2="346.73" y2="342" stroke="#f3f4f6"/>
+<text x="346.73" y="366" font-size="12" text-anchor="middle" fill="#374151">15</text>
+<line x1="431.64" y1="48" x2="431.64" y2="342" stroke="#f3f4f6"/>
+<text x="431.64" y="366" font-size="12" text-anchor="middle" fill="#374151">20</text>
+<line x1="516.55" y1="48" x2="516.55" y2="342" stroke="#f3f4f6"/>
+<text x="516.55" y="366" font-size="12" text-anchor="middle" fill="#374151">25</text>
+<line x1="601.45" y1="48" x2="601.45" y2="342" stroke="#f3f4f6"/>
+<text x="601.45" y="366" font-size="12" text-anchor="middle" fill="#374151">30</text>
+<line x1="686.36" y1="48" x2="686.36" y2="342" stroke="#f3f4f6"/>
+<text x="686.36" y="366" font-size="12" text-anchor="middle" fill="#374151">35</text>
+<line x1="771.27" y1="48" x2="771.27" y2="342" stroke="#f3f4f6"/>
+<text x="771.27" y="366" font-size="12" text-anchor="middle" fill="#374151">40</text>
+<line x1="856.18" y1="48" x2="856.18" y2="342" stroke="#f3f4f6"/>
+<text x="856.18" y="366" font-size="12" text-anchor="middle" fill="#374151">45</text>
+<line x1="941.09" y1="48" x2="941.09" y2="342" stroke="#f3f4f6"/>
+<text x="941.09" y="366" font-size="12" text-anchor="middle" fill="#374151">50</text>
+<line x1="1026.00" y1="48" x2="1026.00" y2="342" stroke="#f3f4f6"/>
+<text x="1026.00" y="366" font-size="12" text-anchor="middle" fill="#374151">55</text>
+<rect x="295.78" y="66" width="50.95" height="28" rx="4" fill="#2563eb" opacity="0.88"/>
+<text x="321.25" y="84" font-size="11" text-anchor="middle" fill="#ffffff">J1-O2</text>
+<rect x="346.73" y="66" width="84.91" height="28" rx="4" fill="#9333ea" opacity="0.88"/>
+<text x="389.18" y="84" font-size="11" text-anchor="middle" fill="#ffffff">J4-O2</text>
+<rect x="431.64" y="66" width="152.84" height="28" rx="4" fill="#16a34a" opacity="0.88"/>
+<text x="508.05" y="84" font-size="11" text-anchor="middle" fill="#ffffff">J3-O4</text>
+<rect x="584.47" y="66" width="169.82" height="28" rx="4" fill="#0891b2" opacity="0.88"/>
+<text x="669.38" y="84" font-size="11" text-anchor="middle" fill="#ffffff">J6-O4</text>
+<rect x="771.27" y="66" width="169.82" height="28" rx="4" fill="#dc2626" opacity="0.88"/>
+<text x="856.18" y="84" font-size="11" text-anchor="middle" fill="#ffffff">J2-O5</text>
+<rect x="941.09" y="66" width="50.95" height="28" rx="4" fill="#d97706" opacity="0.88"/>
+<text x="966.56" y="84" font-size="11" text-anchor="middle" fill="#ffffff">J5-O5</text>
+<rect x="92.00" y="112" width="135.85" height="28" rx="4" fill="#dc2626" opacity="0.88"/>
+<text x="159.93" y="130" font-size="11" text-anchor="middle" fill="#ffffff">J2-O1</text>
+<rect x="244.84" y="112" width="84.91" height="28" rx="4" fill="#9333ea" opacity="0.88"/>
+<text x="287.29" y="130" font-size="11" text-anchor="middle" fill="#ffffff">J4-O1</text>
+<rect x="329.75" y="112" width="50.95" height="28" rx="4" fill="#0891b2" opacity="0.88"/>
+<text x="355.22" y="130" font-size="11" text-anchor="middle" fill="#ffffff">J6-O1</text>
+<rect x="465.60" y="112" width="50.95" height="28" rx="4" fill="#d97706" opacity="0.88"/>
+<text x="491.07" y="130" font-size="11" text-anchor="middle" fill="#ffffff">J5-O2</text>
+<rect x="584.47" y="112" width="16.98" height="28" rx="4" fill="#16a34a" opacity="0.88"/>
+<rect x="601.45" y="112" width="101.89" height="28" rx="4" fill="#2563eb" opacity="0.88"/>
+<text x="652.40" y="130" font-size="11" text-anchor="middle" fill="#ffffff">J1-O3</text>
+<rect x="92.00" y="158" width="84.91" height="28" rx="4" fill="#16a34a" opacity="0.88"/>
+<text x="134.45" y="176" font-size="11" text-anchor="middle" fill="#ffffff">J3-O1</text>
+<rect x="210.87" y="158" width="16.98" height="28" rx="4" fill="#2563eb" opacity="0.88"/>
+<rect x="227.85" y="158" width="84.91" height="28" rx="4" fill="#dc2626" opacity="0.88"/>
+<text x="270.31" y="176" font-size="11" text-anchor="middle" fill="#ffffff">J2-O2</text>
+<rect x="312.76" y="158" width="152.84" height="28" rx="4" fill="#d97706" opacity="0.88"/>
+<text x="389.18" y="176" font-size="11" text-anchor="middle" fill="#ffffff">J5-O1</text>
+<rect x="465.60" y="158" width="84.91" height="28" rx="4" fill="#9333ea" opacity="0.88"/>
+<text x="508.05" y="176" font-size="11" text-anchor="middle" fill="#ffffff">J4-O3</text>
+<rect x="924.11" y="158" width="16.98" height="28" rx="4" fill="#0891b2" opacity="0.88"/>
+<rect x="227.85" y="204" width="67.93" height="28" rx="4" fill="#16a34a" opacity="0.88"/>
+<text x="261.82" y="222" font-size="11" text-anchor="middle" fill="#ffffff">J3-O2</text>
+<rect x="380.69" y="204" width="50.95" height="28" rx="4" fill="#0891b2" opacity="0.88"/>
+<text x="406.16" y="222" font-size="11" text-anchor="middle" fill="#ffffff">J6-O2</text>
+<rect x="652.40" y="204" width="50.95" height="28" rx="4" fill="#9333ea" opacity="0.88"/>
+<text x="677.87" y="222" font-size="11" text-anchor="middle" fill="#ffffff">J4-O4</text>
+<rect x="703.35" y="204" width="118.87" height="28" rx="4" fill="#2563eb" opacity="0.88"/>
+<text x="762.78" y="222" font-size="11" text-anchor="middle" fill="#ffffff">J1-O4</text>
+<rect x="941.09" y="204" width="67.93" height="28" rx="4" fill="#dc2626" opacity="0.88"/>
+<text x="975.05" y="222" font-size="11" text-anchor="middle" fill="#ffffff">J2-O6</text>
+<rect x="1009.02" y="204" width="16.98" height="28" rx="4" fill="#d97706" opacity="0.88"/>
+<rect x="312.76" y="250" width="169.82" height="28" rx="4" fill="#dc2626" opacity="0.88"/>
+<text x="397.67" y="268" font-size="11" text-anchor="middle" fill="#ffffff">J2-O3</text>
+<rect x="516.55" y="250" width="84.91" height="28" rx="4" fill="#d97706" opacity="0.88"/>
+<text x="559.00" y="268" font-size="11" text-anchor="middle" fill="#ffffff">J5-O3</text>
+<rect x="601.45" y="250" width="118.87" height="28" rx="4" fill="#16a34a" opacity="0.88"/>
+<text x="660.89" y="268" font-size="11" text-anchor="middle" fill="#ffffff">J3-O6</text>
+<rect x="720.33" y="250" width="135.85" height="28" rx="4" fill="#9333ea" opacity="0.88"/>
+<text x="788.25" y="268" font-size="11" text-anchor="middle" fill="#ffffff">J4-O5</text>
+<rect x="856.18" y="250" width="67.93" height="28" rx="4" fill="#0891b2" opacity="0.88"/>
+<text x="890.15" y="268" font-size="11" text-anchor="middle" fill="#ffffff">J6-O5</text>
+<rect x="924.11" y="250" width="101.89" height="28" rx="4" fill="#2563eb" opacity="0.88"/>
+<text x="975.05" y="268" font-size="11" text-anchor="middle" fill="#ffffff">J1-O6</text>
+<rect x="295.78" y="296" width="135.85" height="28" rx="4" fill="#16a34a" opacity="0.88"/>
+<text x="363.71" y="314" font-size="11" text-anchor="middle" fill="#ffffff">J3-O3</text>
+<rect x="431.64" y="296" width="152.84" height="28" rx="4" fill="#0891b2" opacity="0.88"/>
+<text x="508.05" y="314" font-size="11" text-anchor="middle" fill="#ffffff">J6-O3</text>
+<rect x="584.47" y="296" width="169.82" height="28" rx="4" fill="#dc2626" opacity="0.88"/>
+<text x="669.38" y="314" font-size="11" text-anchor="middle" fill="#ffffff">J2-O4</text>
+<rect x="754.29" y="296" width="67.93" height="28" rx="4" fill="#d97706" opacity="0.88"/>
+<text x="788.25" y="314" font-size="11" text-anchor="middle" fill="#ffffff">J5-O4</text>
+<rect x="822.22" y="296" width="50.95" height="28" rx="4" fill="#2563eb" opacity="0.88"/>
+<text x="847.69" y="314" font-size="11" text-anchor="middle" fill="#ffffff">J1-O5</text>
+<rect x="873.16" y="296" width="152.84" height="28" rx="4" fill="#9333ea" opacity="0.88"/>
+<text x="949.58" y="314" font-size="11" text-anchor="middle" fill="#ffffff">J4-O6</text>
+<text x="530.0" y="385" font-size="14" text-anchor="middle" fill="#111827">Time units</text>
+</g></svg>
