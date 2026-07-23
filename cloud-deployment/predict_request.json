@@ -1,0 +1,25 @@
+{
+  "features": {
+    "Major_Category": "Computer Science",
+    "Year_of_Study": 3,
+    "Pre_Semester_GPA": 3.20,
+    "Weekly_GenAI_Hours": 8.0,
+    "Primary_Use_Case": "Assignment Help",
+    "Prompt_Engineering_Skill": 3,
+    "Tool_Diversity": 2,
+    "Paid_Subscription": "Yes",
+    "Traditional_Study_Hours": 12.0,
+    "Perceived_AI_Dependency": 3,
+    "Institutional_Policy": "Allowed with Guidelines",
+    "Anxiety_Level_During_Exams": 4,
+    "Post_Semester_GPA": 3.10,
+    "Skill_Retention_Score": 65.0,
+    "GPA_Change": -0.10,
+    "GPA_Drop_Flag": 1,
+    "AI_to_Study_Ratio": 0.6667,
+    "Total_Study_Load": 20.0,
+    "High_AI_Use_Flag": 0,
+    "Dependency_Anxiety_Index": 12.0,
+    "Skill_Efficiency": 5.4167
+  }
+}

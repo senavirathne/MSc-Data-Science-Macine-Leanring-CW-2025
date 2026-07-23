@@ -1,0 +1,41 @@
+cell	output	heading	file
+11	0	### Visualization of raw Brent price series	cell_011_out_00_visualization_of_raw_brent_price_series.png
+13	0	### Visualization of raw Brent price series	cell_013_out_00_visualization_of_raw_brent_price_series.png
+13	1	### Visualization of raw Brent price series	cell_013_out_01_visualization_of_raw_brent_price_series.png
+15	0	### Log returns	cell_015_out_00_log_returns.png
+17	0	### Time series decomposition	cell_017_out_00_time_series_decomposition.png
+18	0	### Time series decomposition	cell_018_out_00_time_series_decomposition.png
+20	1	### Time series decomposition	cell_020_out_01_time_series_decomposition.png
+23	0	### Outlier and anomaly detection	cell_023_out_00_outlier_and_anomaly_detection.png
+25	1	### Outlier and anomaly detection	cell_025_out_01_outlier_and_anomaly_detection.png
+36	0	### Visual comparison: price level vs differenced price vs returns	cell_036_out_00_visual_comparison_price_level_vs_differenced_price_vs_returns.png
+36	1	### Visual comparison: price level vs differenced price vs returns	cell_036_out_01_visual_comparison_price_level_vs_differenced_price_vs_returns.png
+36	2	### Visual comparison: price level vs differenced price vs returns	cell_036_out_02_visual_comparison_price_level_vs_differenced_price_vs_returns.png
+72	1	### XGBoost feature importance	cell_072_out_01_xgboost_feature_importance.png
+88	0	### Plot actual vs predicted prices	cell_088_out_00_plot_actual_vs_predicted_prices.png
+90	0	### Compare model errors visually	cell_090_out_00_compare_model_errors_visually.png
+92	0	### Bar chart of model performance	cell_092_out_00_bar_chart_of_model_performance.png
+92	1	### Bar chart of model performance	cell_092_out_01_bar_chart_of_model_performance.png
+92	2	### Bar chart of model performance	cell_092_out_02_bar_chart_of_model_performance.png
+104	0	### Visual evidence of volatility clustering	cell_104_out_00_visual_evidence_of_volatility_clustering.png
+104	1	### Visual evidence of volatility clustering	cell_104_out_01_visual_evidence_of_volatility_clustering.png
+106	1	### Autocorrelation of squared returns	cell_106_out_01_autocorrelation_of_squared_returns.png
+106	3	### Autocorrelation of squared returns	cell_106_out_03_autocorrelation_of_squared_returns.png
+118	0	### Model diagnostics	cell_118_out_00_model_diagnostics.png
+118	1	### Model diagnostics	cell_118_out_01_model_diagnostics.png
+118	3	### Model diagnostics	cell_118_out_03_model_diagnostics.png
+125	0	### Plot forecast volatility against actual fluctuations	cell_125_out_00_plot_forecast_volatility_against_actual_fluctuations.png
+125	1	### Plot forecast volatility against actual fluctuations	cell_125_out_01_plot_forecast_volatility_against_actual_fluctuations.png
+127	1	### Forecast next 30 days of volatility	cell_127_out_01_forecast_next_30_days_of_volatility.png
+137	0	### Model comparison visualizations	cell_137_out_00_model_comparison_visualizations.png
+137	1	### Model comparison visualizations	cell_137_out_01_model_comparison_visualizations.png
+137	2	### Model comparison visualizations	cell_137_out_02_model_comparison_visualizations.png
+139	0	### Actual vs predicted prices	cell_139_out_00_actual_vs_predicted_prices.png
+143	0	### Error distribution plots	cell_143_out_00_error_distribution_plots.png
+143	1	### Error distribution plots	cell_143_out_01_error_distribution_plots.png
+143	2	### Error distribution plots	cell_143_out_02_error_distribution_plots.png
+143	3	### Error distribution plots	cell_143_out_03_error_distribution_plots.png
+145	0	### Absolute error over time	cell_145_out_00_absolute_error_over_time.png
+147	1	### Directional accuracy	cell_147_out_01_directional_accuracy.png
+153	0	### Plot volatility and best model errors	cell_153_out_00_plot_volatility_and_best_model_errors.png
+155	0	### Future volatility forecast visualization	cell_155_out_00_future_volatility_forecast_visualization.png

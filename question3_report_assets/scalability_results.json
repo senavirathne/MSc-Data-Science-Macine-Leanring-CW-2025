@@ -1,0 +1,156 @@
+{
+  "design": {
+    "purpose": "fixed-budget empirical scalability check",
+    "instances": [
+      "FT06",
+      "FT10"
+    ],
+    "source": "OR-Library jobshop1",
+    "source_url": "https://people.brunel.ac.uk/~mastjjb/jeb/orlib/files/jobshop1.txt",
+    "ga_retuned_for_ft10": false
+  },
+  "instances": [
+    {
+      "instance": "FT06",
+      "jobs": 6,
+      "machines": 6,
+      "operations": 36,
+      "known_optimum": 55,
+      "big_m": 197,
+      "ga": {
+        "config": {
+          "population_size": 100,
+          "generations": 100,
+          "crossover_probability": 0.95,
+          "mutation_probability": 0.2,
+          "elite_size": 4,
+          "tournament_size": 3
+        },
+        "seeds": [
+          101,
+          103,
+          107,
+          109,
+          113
+        ],
+        "summary": {
+          "runs": 5,
+          "best_makespan": 55.0,
+          "mean_makespan": 56.0,
+          "worst_makespan": 58.0,
+          "std_makespan": 1.2649110640673518,
+          "optimum_hit_rate_percent": 60.0,
+          "mean_runtime_seconds": 1.1540078251971864,
+          "mean_generations_completed": 100.0
+        },
+        "best_schedule_validation": {
+          "valid": true,
+          "operations_checked": 36,
+          "calculated_makespan": 55.0,
+          "issues": []
+        }
+      },
+      "mip": {
+        "time_limit_seconds": 30,
+        "threads": 1,
+          "pulp_status": "Optimal",
+          "pulp_status_code": 1,
+          "proven_optimal": true,
+          "objective_value": 55.0,
+        "runtime_seconds": 8.74588220397709,
+        "schedule_validation": {
+          "valid": true,
+          "operations_checked": 36,
+          "calculated_makespan": 55.0,
+          "issues": []
+        },
+        "variables": 163,
+        "binary_variables": 90,
+          "constraints": 282,
+          "cbc_version": "2.10.3",
+          "pulp_version": "3.3.2",
+          "termination": "Optimal solution found",
+        "proven_optimal_from_log": true,
+        "objective_value_from_log": 55.0,
+        "best_bound": 55.0,
+        "solver_gap_percent": 0.0,
+        "enumerated_nodes": 306,
+        "wallclock_seconds_from_log": 8.32
+      }
+    },
+    {
+      "instance": "FT10",
+      "jobs": 10,
+      "machines": 10,
+      "operations": 100,
+      "known_optimum": 930,
+      "big_m": 5109,
+      "ga": {
+        "config": {
+          "population_size": 100,
+          "generations": 100,
+          "crossover_probability": 0.95,
+          "mutation_probability": 0.2,
+          "elite_size": 4,
+          "tournament_size": 3
+        },
+        "seeds": [
+          101,
+          103,
+          107,
+          109,
+          113
+        ],
+        "summary": {
+          "runs": 5,
+          "best_makespan": 1036.0,
+          "mean_makespan": 1071.4,
+          "worst_makespan": 1121.0,
+          "std_makespan": 29.803355515780435,
+          "optimum_hit_rate_percent": 0.0,
+          "mean_runtime_seconds": 1.8739936240017414,
+          "mean_generations_completed": 100.0
+        },
+        "best_schedule_validation": {
+          "valid": true,
+          "operations_checked": 100,
+          "calculated_makespan": 1036.0,
+          "issues": []
+        }
+      },
+      "mip": {
+        "time_limit_seconds": 30,
+        "threads": 1,
+          "pulp_status": "Optimal",
+          "pulp_status_code": 1,
+          "proven_optimal": false,
+          "objective_value": 1147.0,
+        "runtime_seconds": 30.30472070001997,
+        "schedule_validation": {
+          "valid": true,
+          "operations_checked": 100,
+          "calculated_makespan": 1147.0,
+          "issues": []
+        },
+        "variables": 651,
+        "binary_variables": 450,
+          "constraints": 1190,
+          "cbc_version": "2.10.3",
+          "pulp_version": "3.3.2",
+          "termination": "Stopped on time limit",
+        "proven_optimal_from_log": false,
+        "objective_value_from_log": 1147.0,
+        "best_bound": 724.0,
+        "solver_gap_percent": 57.99999999999999,
+        "enumerated_nodes": 1048,
+        "wallclock_seconds_from_log": 30.07
+      }
+    }
+  ],
+  "environment": {
+    "python": "3.13.5",
+    "platform": "macOS-12.7.5-x86_64-i386-64bit-Mach-O",
+    "pulp": "3.3.2",
+    "cbc": "2.10.3"
+  }
+}

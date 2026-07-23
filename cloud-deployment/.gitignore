@@ -1,6 +1,1 @@
-__pycache__/
-*.py[cod]
-.pytest_cache/
-.venv/
-.env
-.DS_Store
+# All files under cloud-deployment are intentionally allowed by the root .gitignore.

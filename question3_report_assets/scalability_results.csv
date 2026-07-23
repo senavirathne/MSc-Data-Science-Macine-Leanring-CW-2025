@@ -1,0 +1,3 @@
+Instance,Jobs,Machines,Operations,Known Optimum,GA Best Makespan,GA Mean Makespan,GA Worst Makespan,GA Mean Runtime Seconds,MIP Objective,MIP Best Bound,MIP Solver Gap Percent,MIP Termination,MIP Runtime Seconds,MIP Binary Variables,MIP Constraints,GA Schedule Valid,MIP Schedule Valid
+FT06,6,6,36,55,55.0,56.0,58.0,1.1540078251971864,55.0,55.0,0.0,Optimal solution found,8.74588220397709,90,282,True,True
+FT10,10,10,100,930,1036.0,1071.4,1121.0,1.8739936240017414,1147.0,724.0,57.99999999999999,Stopped on time limit,30.30472070001997,450,1190,True,True

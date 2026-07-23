@@ -3,6 +3,7 @@
 
 # Exceptions
 !.gitignore
+!README.md
 !ML_q2.ipynb
 !ML-q1.ipynb
 !Question 1 Report.md
@@ -13,19 +14,26 @@
 !.github/
 !.github/**
 !question3_generate_assets.py
+!question3_scalability_experiment.py
+!question3_requirements.txt
+!Final Coursework Report.pdf
+!final_report_assets/
+!final_report_assets/**
 
-# Question 3 figures embedded by the report.
+# Report assets and reproducibility outputs.
 !question3_report_assets/
-question3_report_assets/*
-!question3_report_assets/ga_convergence.svg
-!question3_report_assets/ga_gantt.svg
-!question3_report_assets/mip_gantt.svg
+!question3_report_assets/**
+!Final Coursework Report.md
 
-# Allow the task2_outputs directory and its contents
+# Allow generated Task 2 outputs and all their contents.
 !task2_outputs/
 !task2_outputs/**
 
-# Keep only the current Question 2 report figures; older generated assets remain ignored.
+# Allow all Question 2 report assets.
 !question2_report_assets/
-question2_report_assets/*
-!question2_report_assets/q2_*.png
+!question2_report_assets/**
+
+# Exclude compiled Python execution artifacts, including within allowed folders.
+__pycache__/
+*.py[cod]
+.venv/

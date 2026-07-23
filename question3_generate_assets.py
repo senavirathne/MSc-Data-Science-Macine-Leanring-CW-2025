@@ -7,8 +7,10 @@ import json
 import platform
 import random
 import statistics
+import subprocess
 import sys
 import time
+from collections import Counter
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
@@ -85,7 +87,11 @@ OPERATIONS = operations()
 def validate_chromosome(chromosome: list[int]) -> None:
     if len(chromosome) != N_OPERATIONS:
         raise ValueError(f"A chromosome must contain {N_OPERATIONS} genes")
-    counts = {job: chromosome.count(job) for job in range(N_JOBS)}
+    observed_counts = Counter(chromosome)
+    counts = {job: observed_counts.get(job, 0) for job in range(N_JOBS)}
+    unexpected_jobs = set(observed_counts) - set(range(N_JOBS))
+    if unexpected_jobs:
+        raise ValueError(f"Invalid job identifiers: {sorted(unexpected_jobs)}")
     if any(count != N_MACHINES for count in counts.values()):
         raise ValueError(f"Invalid job multiplicities: {counts}")
 
@@ -442,7 +448,41 @@ def normalise_time(value: float) -> int | float:
     return int(rounded) if abs(value - rounded) <= 1e-6 else round(value, 6)
 
 
-def solve_mip(time_limit_seconds: int = 120) -> dict[str, Any]:
+def get_cbc_version(solver_path: str) -> str | None:
+    """Return the bundled CBC version without changing the optimization model."""
+    try:
+        result = subprocess.run(
+            [solver_path, "-version"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    for line in result.stdout.splitlines():
+        if line.strip().startswith("Version:"):
+            return line.split(":", 1)[1].strip()
+    return None
+
+
+def get_cbc_termination(log_path: Path | None) -> str | None:
+    """Read CBC's native termination reason when a log was requested."""
+    if log_path is None or not log_path.exists():
+        return None
+    for line in log_path.read_text(encoding="utf-8", errors="replace").splitlines():
+        if line.startswith("Result - "):
+            return line.removeprefix("Result - ").strip()
+    return None
+
+
+def solve_mip(
+    time_limit_seconds: int = 120,
+    *,
+    log_path: Path | None = None,
+    problem_name: str = "FT06_Job_Shop_Scheduling",
+    threads: int | None = None,
+) -> dict[str, Any]:
     try:
         import pulp
     except ImportError as exc:
@@ -454,7 +494,7 @@ def solve_mip(time_limit_seconds: int = 120) -> dict[str, Any]:
         }
 
     started = time.perf_counter()
-    problem = pulp.LpProblem("FT06_Job_Shop_Scheduling", pulp.LpMinimize)
+    problem = pulp.LpProblem(problem_name, pulp.LpMinimize)
     op_keys = [(row["Job"] - 1, row["Operation"] - 1) for row in OPERATIONS]
 
     start_vars = pulp.LpVariable.dicts("S", op_keys, lowBound=0, cat="Continuous")
@@ -507,10 +547,25 @@ def solve_mip(time_limit_seconds: int = 120) -> dict[str, Any]:
         problem += completion_vars[op_a] <= start_vars[op_b] + BIG_M * (1 - x_var)
         problem += completion_vars[op_b] <= start_vars[op_a] + BIG_M * x_var
 
-    solver = pulp.PULP_CBC_CMD(msg=False, timeLimit=time_limit_seconds)
+    solver_options: dict[str, Any] = {
+        "msg": False,
+        "timeLimit": time_limit_seconds,
+    }
+    if log_path is not None:
+        solver_options["logPath"] = str(log_path)
+    if threads is not None:
+        solver_options["threads"] = threads
+    solver = pulp.PULP_CBC_CMD(**solver_options)
+    cbc_version = get_cbc_version(solver.path)
     status_code = problem.solve(solver)
     runtime_seconds = time.perf_counter() - started
     status = pulp.LpStatus.get(status_code, str(status_code))
+    native_termination = get_cbc_termination(log_path)
+    proven_optimal = (
+        native_termination == "Optimal solution found"
+        if native_termination is not None
+        else status == "Optimal"
+    )
     objective_value = pulp.value(cmax)
 
     schedule: list[dict[str, Any]] = []
@@ -544,10 +599,12 @@ def solve_mip(time_limit_seconds: int = 120) -> dict[str, Any]:
     return {
         "available": True,
         "solver": "CBC via PuLP",
+        "cbc_version": cbc_version,
         "pulp_version": pulp.__version__,
         "status": status,
         "status_code": status_code,
-        "proven_optimal": status == "Optimal",
+        "native_termination": native_termination,
+        "proven_optimal": proven_optimal,
         "objective_value": objective_value,
         "known_optimum": KNOWN_OPTIMUM,
         "known_optimum_gap_percent": (
