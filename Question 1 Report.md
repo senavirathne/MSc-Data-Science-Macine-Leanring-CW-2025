@@ -1,8 +1,8 @@
-# Associative Classification of Lower or Uncertain Self-Perceived Academic Success in a Global Student Survey
+# Associative Classification of Lower or Uncertain Self-Perceived Academic Success Using a 2024–2025 Global Higher-Education ChatGPT Survey
 
 ## Abstract
 
-This study evaluates whether responses from a large international survey of higher-education students can distinguish respondents who report lower or uncertain academic success from those who report higher success. The observational dataset contains 22,963 responses and 180 variables collected in seven languages across 120 countries and territories. The binary outcome was derived from Q35a, “I am successful in my studies”: responses 1–3 form the positive lower/uncertain class and responses 4–5 form the higher-success class. After duplicate removal and exclusion of missing outcomes, 17,426 labelled records remained.
+This study uses the 2024–2025 wave of the global *Higher Education Students’ Evolving Perceptions of ChatGPT* survey to evaluate whether other responses collected in the same survey can distinguish respondents who report lower or uncertain self-perceived academic success from those who report higher self-perceived success. The observational dataset contains 22,963 responses and 180 variables collected in seven languages across 120 countries and territories. The binary outcome was derived from Q35a, “I am successful in my studies”: responses 1–3 form the positive lower/uncertain class and responses 4–5 form the higher-success class. After duplicate removal and exclusion of missing outcomes, 17,426 labelled records remained. The analysis does not estimate changes in perceptions over time, objective academic performance or causal effects of ChatGPT use.
 
 The analysis used leakage-controlled preprocessing, four questionnaire-based composite features, ANOVA percentile feature selection, five-fold stratified cross-validation and randomized hyperparameter search. Logistic Regression, K-Nearest Neighbours, Random Forest, Histogram Gradient Boosting and a multilayer perceptron were compared using positive-class F1 as the selection criterion. Logistic Regression achieved the highest cross-validated F1 (0.6011 ± 0.0107) and was selected before test evaluation. On the locked test set it achieved accuracy 0.6546, precision 0.5277, recall 0.6429, F1 0.5796, ROC-AUC 0.7124 and PR-AUC 0.5862. Histogram Gradient Boosting provided stronger overall discrimination but substantially lower positive-class recall.
 
@@ -13,13 +13,13 @@ Permutation importance identified confidence about obtaining a job after study, 
 
 Generative artificial intelligence has become embedded in students' academic work, but its adoption and perceived value differ across disciplines, study settings and demographic contexts. Institutions may wish to understand patterns associated with students' academic experiences, yet predictive work in this area requires care. Survey responses are subjective, cross-sectional and often structurally incomplete; a model can identify associations without establishing that ChatGPT use improves or harms achievement.
 
-This study develops an associative classifier for a single survey statement: “I am successful in my studies.” The positive class represents lower or uncertain self-perceived success, not objective failure, a diagnosis or a verified need for intervention. The analysis asks three practical questions:
+Using only the 2024–2025 cross-sectional survey wave, this study develops an associative classifier for a single survey statement: “I am successful in my studies.” It tests whether eligible responses drawn from Q6–Q34 can distinguish lower or uncertain self-perceived success from higher self-perceived success. The positive class represents lower or uncertain self-perceived success, not objective failure, a diagnosis or a verified need for intervention. The analysis does not examine how students' perceptions of ChatGPT evolved over time. It asks three practical questions:
 
-1. How reliably can earlier questionnaire responses distinguish the two outcome groups?
+1. How reliably can eligible Q6–Q34 responses collected in the same survey distinguish the two Q35a outcome groups?
 2. What performance trade-offs arise across complementary model families?
 3. Which inputs influence the fitted model, and does its error behaviour vary across audited subgroups?
 
-The intended contribution is a reproducible benchmark built from a large, multilingual survey. It is not a prospective early-warning system. Asking Q35a directly is simpler and more transparent than inferring it from a long contemporaneous questionnaire; any support-oriented application would need a shorter prospective instrument, an objective outcome and independent validation.
+The purpose is to benchmark five leakage-controlled supervised classifiers for distinguishing lower or uncertain from higher contemporaneous self-perceived academic success, using positive-class F1 for model selection, and then examine feature associations and subgroup error patterns. It is not a prospective early-warning system. Asking Q35a directly is simpler and more transparent than inferring it from a long contemporaneous questionnaire; any support-oriented application would need a shorter instrument administered at a prospectively defined prediction time, a meaningful later outcome and independent educational, fairness and ethical validation.
 
 ### 1.1 Related research
 
@@ -40,7 +40,7 @@ Academic-prediction studies often rely on grades, learning-management records or
 
 ### 2.1 Dataset and study design
 
-The data are from *Higher Education Students’ Evolving Perceptions of ChatGPT: Global Survey Data from the Academic Year 2024–2025*, Mendeley Data version 2 (Aristovnik et al., 2025; DOI [10.17632/nv2343nwsb.2](https://doi.org/10.17632/nv2343nwsb.2)). The CC BY 4.0 dataset contains anonymous survey responses collected between October 2024 and February 2025 through convenience sampling. The questionnaire was offered in Arabic, English, Hebrew, Italian, Japanese, Spanish and Turkish. It covers student context, ChatGPT use, perceived capabilities, regulation and ethics, satisfaction, study outcomes, skills, emotions and study information.
+The data are from *Higher Education Students’ Evolving Perceptions of ChatGPT: Global Survey Data from the Academic Year 2024–2025*, Mendeley Data version 2 (Aristovnik et al., 2025; DOI [10.17632/nv2343nwsb.2](https://doi.org/10.17632/nv2343nwsb.2)). The CC BY 4.0 dataset contains anonymous survey responses collected between October 2024 and February 2025 through convenience sampling. The questionnaire was offered in Arabic, English, Hebrew, Italian, Japanese, Spanish and Turkish. It covers student context, ChatGPT use, perceived capabilities, regulation and ethics, satisfaction, study outcomes, skills, emotions and study information. The source title uses “evolving” because this survey repeated an earlier global survey; the present analysis uses only the 2024–2025 wave and neither compares survey waves nor tracks respondents over time.
 
 The raw workbook contained 22,963 rows and 180 columns. Its mixture of ordinal Likert items, binary indicators, nominal categories, age, high-cardinality text and routed question blocks makes it suitable for evaluating a realistic tabular-learning pipeline.
 
@@ -53,7 +53,7 @@ Q35a asks respondents to rate “I am successful in my studies” on a five-poin
 
 The grouping makes uncertainty part of the support-oriented positive class, but it does not imply academic failure. Missing outcomes were excluded rather than imputed.
 
-Candidate predictors were restricted to Q1–Q34. Questions Q35b–Q40 were excluded to reduce direct same-section proxying. Institution, free text, citizenship, country of study, gender, age and survey language were not used for prediction because of privacy, cardinality or fairness concerns. Gender, age and survey language were retained separately only for subgroup auditing. The component items used to construct four composites were removed after aggregation, avoiding redundant inclusion of the same information.
+Candidate predictors were eligible responses drawn from Q6–Q34. Questions Q1–Q5, Q35b–Q40, institution, free text, citizenship, country of study, gender, age and survey language were not used for prediction because of routing, leakage, privacy, cardinality or fairness concerns. Gender, age and survey language were retained separately only for subgroup auditing. The component items used to construct four composites were removed after aggregation, avoiding redundant inclusion of the same information.
 
 ### 2.3 Data quality and cleaning
 
@@ -299,7 +299,7 @@ The positive-class precision of 0.5277 means that nearly half of the respondents
 
 Several limitations define the interpretation:
 
-1. **Contemporaneous subjective outcome.** Predictors and Q35a come from the same survey. The model reconstructs one self-report from other self-reports; it does not forecast a later objective outcome.
+1. **Single-wave contemporaneous self-reports.** Predictors and Q35a come from the same 2024–2025 survey snapshot. Despite the source dataset's title, the analysis does not measure evolving perceptions, compare survey waves or forecast a later objective outcome.
 2. **Direct questioning is preferable.** If the aim is to understand perceived success, asking Q35a is more transparent than indirect inference.
 3. **Convenience sampling.** Countries, languages and institutions are not represented proportionally, so aggregate metrics are not population estimates.
 4. **Target nonresponse.** Removing 5,410 post-deduplication records without Q35a may introduce selection bias.

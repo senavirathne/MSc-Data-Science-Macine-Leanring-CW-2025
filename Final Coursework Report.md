@@ -1,23 +1,27 @@
 # NIB 7072: Machine Learning Coursework Report
 
-**Programme:** Coventry University / NIBM – MSc Data Science
+#### **Student Name:** Madushika Pramod Senevirathna
+#### **Student ID:** COMScDS252P-002
+#### **[GitHub Repo](https://github.com/senavirathne/MSc-Data-Science-Macine-Leanring-CW-2025)**
 
-**Coursework:** 2025 Batch & Resit
-
-## Question 1: Associative Classification of Lower or Uncertain Self-Perceived Academic Success in a Global Student Survey
+---
+## Question 1: Associative Classification of Lower or Uncertain Self-Perceived Academic Success Using a 2024–2025 Global Higher-Education ChatGPT Survey
 
 ### Abstract
 
-This study evaluates whether student responses from a large global
-higher-education survey can be used to classify respondents who report lower or
-uncertain academic success versus those who report higher success. The raw
+This study uses the 2024–2025 wave of the global *Higher Education Students’
+Evolving Perceptions of ChatGPT* survey to evaluate whether other responses
+collected in the same survey can distinguish respondents who report lower or
+uncertain self-perceived academic success from those who report higher
+self-perceived success. The raw
 dataset contains 22,963 responses across 180 variables, collected in 7 languages
 from 120 countries and territories. A binary outcome target was derived from
 question Q35a (“I am successful in my studies”): responses 1–3 represent the
 positive class (lower or uncertain self-perceived success), while responses 4–5
 represent the negative class (higher success). After cleaning duplicate entries
 and removing records with missing outcomes, a final labelled dataset of 17,426
-records was established.
+records was established. The analysis does not estimate changes in perceptions
+over time, objective academic performance, or causal effects of ChatGPT use.
 
 A robust preprocessing pipeline was implemented to prevent data leakage. This
 included four domain-specific composite features, ANOVA percentile feature
@@ -66,26 +70,32 @@ self-reported, cross-sectional, and often incomplete. Consequently, a machine
 learning model can identify statistical associations, but it cannot prove
 whether AI tool usage directly improves or hinders student academic performance.
 
-This study builds an associative classifier focused on a single survey
-statement: Q35a (“I am successful in my studies”). The positive target class
-represents students who report lower or uncertain self-perceived academic
-success (ratings 1–3). This classification does not indicate academic failure or
-a formal clinical diagnosis. The research addresses three core questions:
+Using only the 2024–2025 cross-sectional survey wave, this study builds an
+associative classifier focused on a single survey statement: Q35a (“I am
+successful in my studies”). It tests whether eligible responses drawn from
+Q6–Q34 can distinguish lower or uncertain self-perceived success from higher
+self-perceived success. The positive target class represents ratings 1–3, not
+objective academic failure, a diagnosis, or a verified need for intervention.
+The analysis does not examine how students' perceptions of ChatGPT evolved over
+time. It addresses three core questions:
 
-1. How accurately can student questionnaire responses distinguish
-   lower/uncertain self-perceived academic success from higher success?
+1. How accurately can eligible Q6–Q34 responses collected in the same survey
+   distinguish the two Q35a self-perceived-success groups?
 2. What performance trade-offs exist across linear, distance-based, tree-based,
    boosting, and neural network algorithms?
-3. Which survey features drive model predictions, and how fairly does the model
-   perform across different demographic subgroups?
+3. Which survey features influence model predictions, and how does error
+   behaviour vary across the audited demographic subgroups?
 
-The primary objective is to deliver a rigorous, reproducible benchmarking
-framework using a large international dataset. This model is explicitly designed
-as an analytical benchmark rather than an early-warning intervention tool. In
-practical settings, asking students about their academic confidence directly is
-far more transparent than trying to infer it from a lengthy questionnaire. Any
-future operational tool would require objective academic records, prospective
-time-series tracking, and extensive clinical/pedagogical validation.
+The purpose is to benchmark five leakage-controlled supervised classifiers for
+distinguishing lower or uncertain from higher contemporaneous self-perceived
+academic success, using positive-class F1 for model selection, and then examine
+feature associations and subgroup error patterns. This model is explicitly
+designed as an analytical benchmark rather than an early-warning intervention
+tool. In practical settings, asking students about their academic confidence
+directly is more transparent than trying to infer it from a lengthy
+questionnaire. Any future operational tool would need a shorter instrument
+administered at a prospectively defined prediction time, a meaningful later
+outcome, and independent educational, fairness, and ethical validation.
 
 #### 1.1 Related research
 
@@ -125,6 +135,10 @@ English, Hebrew, Italian, Japanese, Spanish, and Turkish. It covers student
 demographics, AI usage habits, perceived capabilities, ethical concerns,
 academic satisfaction, emotional states, and study performance.
 
+The source title uses “evolving” because this survey repeated an earlier global
+survey. The present analysis uses only the 2024–2025 wave and neither compares
+survey waves nor tracks respondents over time.
+
 The raw dataset comprised 22,963 rows and 180 columns. The mixture of Likert
 scales, binary choices, categorical demographics, and open text fields provides
 a realistic challenge for tabular machine learning workflows.
@@ -139,18 +153,17 @@ follows:
   2, or 3.
 - **Class 0 (Negative Class — Higher Success):** Likert ratings 4 or 5.
 
-Including neutral responses (rating 3) in the positive class ensures that
-uncertain students are captured for potential support, without labeling them as
-academic failures. Records with missing Q35a values were removed rather than
-imputed.
+Grouping rating 3 with ratings 1–2 operationalizes the pre-specified “lower or
+uncertain” class; it does not identify academic failure or a verified need for
+support. Records with missing Q35a values were removed rather than imputed.
 
-Predictors were strictly limited to questions Q1 through Q34. Questions Q35b–Q40
-were excluded to prevent target proxy leakage. Sensitive demographic variables
-(institution, country, citizenship, gender, age, and survey language) were
-excluded from model features to protect privacy and prevent bias. However,
-gender, age, and language were retained separately for fairness subgroup
-auditing. Individual items used in feature engineering were dropped after
-aggregation to eliminate feature redundancy.
+Predictors were eligible responses drawn from Q6–Q34. Questions Q1–Q5 and
+Q35b–Q40 were excluded because of routing, privacy, or target-proxy leakage.
+Institution, free text, citizenship, country of study, gender, age, and survey
+language were also excluded from model features because of privacy, cardinality,
+or fairness concerns. Gender, age, and language were retained separately for
+fairness subgroup auditing. Individual items used in feature engineering were
+dropped after aggregation to eliminate feature redundancy.
 
 #### 2.3 Data quality and cleaning
 
@@ -502,8 +515,10 @@ academic placement, or administrative tracking.
 
 #### 5.2 Limitations
 
-1. **Cross-Sectional Self-Reports:** Outcome Q35a and predictors Q1–Q34
-   originate from the same survey snapshot; the model cannot establish causal
+1. **Single-Wave, Cross-Sectional Self-Reports:** Outcome Q35a and the eligible
+   Q6–Q34 predictors originate from the same 2024–2025 survey snapshot. Despite
+   the source dataset's title, the model does not measure evolving perceptions,
+   compare survey waves, forecast a later objective outcome, or establish causal
    direction.
 2. **Convenience Sampling Bias:** The survey relied on voluntary online
    sampling, limiting global statistical representativeness.
